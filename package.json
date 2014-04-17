@@ -1,0 +1,26 @@
+{
+  "name": "krain",
+  "version": "0.0.0",
+  "description": "access namespace useing nsinit",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anandkumarpatel/krain.git"
+  },
+  "keywords": [
+    "docker",
+    "nsenter"
+  ],
+  "author": "Anandkumar Patel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anandkumarpatel/krain/issues"
+  },
+  "homepage": "https://github.com/anandkumarpatel/krain",
+  "dependencies": {
+    "pty.js": "~0.2.4"
+  }
+}
