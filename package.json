@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
-    "pty.js": "~0.2.4"
+    "pty.js": "^0.2.4",
+    "which": "^1.0.5"
   }
 }
