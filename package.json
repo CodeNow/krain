@@ -22,6 +22,8 @@
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
     "pty.js": "^0.2.4",
-    "which": "^1.0.5"
+    "which": "^1.0.5",
+    "express": "^4.0.0",
+    "findit": "^1.1.1"
   }
 }

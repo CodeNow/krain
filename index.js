@@ -1,15 +1,5 @@
 // Create terminal stream for a container using nsenter
-/* example usage
-krain(function() {
-  var inst = connect('26073',"--mount --uts --ipc --net --pid",
-    {
-      cols: 80,
-      rows: 30
-    });
-  inst.pipe(process.stdout);
-  process.stdin.pipe(inst);
-});
-*/
+config.fsRoot = "/docker/execdriver/native";
 
 var which = require('which');
 var pty = require('pty.js');
@@ -47,4 +37,18 @@ var connect = function(pid, Args, Opts) {
   return term;
 };
 
+
+/*
+  get container filesystem obj
+*/
+var getFs = function(containerId, cb) {
+  // validate container id
+  return {
+    containerRoot: config.fsRoot + containerId
+  };
+};
+
+
+module.exports.krain = krain;
+module.exports.connect = connect;
 
