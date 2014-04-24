@@ -85,9 +85,9 @@ var list = function(reqDir, cb) {
 /*
   read file from filepath
 */
-var readFile = function(filePath, cb) { 
-  fs.readFile(filePath, 'utf8', function (err, content) {
-    cb(null, content);
+var readFile = function(filePath, encoding, cb) { 
+  fs.readFile(filePath, encoding, function (err, data) {
+    cb(err, data);
   });
 };
 
