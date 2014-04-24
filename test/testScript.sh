@@ -1,13 +1,31 @@
-curl "localhost:3000/listall?path=/1&containerId=/C1" | json_pp
-curl "localhost:3000/list?path=/1&containerId=/C1" | json_pp
-curl "localhost:3000/read?path=/1/level1file0&containerId=/C1"
+TEST_ROOT_DIR=$(pwd)
+TEST_FOLDER=$(echo "$TEST_ROOT_DIR/test_folder")
+TEST_FILE=$(echo "$TEST_ROOT_DIR/test_file")
+EMPTY_DIR=$(echo "$TEST_ROOT_DIR/empty_dir")
 
-rm -rf ./C1/newThing
-curl -X POST "localhost:3000/mkdir?path=/newThing&containerId=/C1" | json_pp
-curl -X POST "localhost:3000/mkdir?path=/newThing&containerId=/C1" | json_pp
-rm -rf ./C1/newThing
+echo normal dir read
+OUT=`curl -s "localhost:3000$TEST_FOLDER/"`
+[[ "$OUT" == '[{"name":"testfile2","path":"/Users/anand/run/other/krain/test/test_folder/","isDir":false}]' ]] && echo pass || echo FAIL
+echo should redirect
+OUT=`curl -s -L "localhost:3000$TEST_FOLDER"`
+[[ "$OUT" == '[{"name":"testfile2","path":"/Users/anand/run/other/krain/test/test_folder/","isDir":false}]' ]] && echo pass || echo FAIL
 
-curl -X POST "localhost:3000/mkdir?path=/rename_me&containerId=/C1" | json_pp
-curl -X POST "localhost:3000/rename?oldpath=/rename_me&newpath=/renamed&containerId=/C1" | json_pp
+echo normal empty dir read
+OUT=`curl -s "localhost:3000$EMPTY_DIR/"`
+[[ "$OUT" == '[]' ]] && echo pass || echo FAIL
+echo empty dir should redirect
+OUT=`curl -s -L "localhost:3000$EMPTY_DIR"` 
+[[ "$OUT" == '[]' ]] && echo pass || echo FAIL
 
-curl -X POST "localhost:3000/write?path=/newfile&data='this is some good data'&containerId=/C1" | json_pp
+
+echo fake dir read
+OUT=`curl -s "localhost:3000$EMPTY_DIR/notexist/"`
+[[ "$OUT" == '{"errno":34,"code":"ENOENT","path":"/Users/anand/run/other/krain/test/empty_dir/notexist/"}' ]] && echo pass || echo FAIL
+
+echo file read
+OUT=`curl -s "localhost:3000$TEST_FILE"`
+[[ "$OUT" == 'this is a test file' ]] && echo pass || echo FAIL
+
+echo non existing file
+OUT=`curl -s "localhost:3000$TEST_FILE/doesnotreal"`
+[[ "$OUT" == '{"errno":27,"code":"ENOTDIR","path":"/Users/anand/run/other/krain/test/test_file/doesnotreal"}' ]] && echo pass || echo FAIL
