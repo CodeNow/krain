@@ -94,12 +94,11 @@ var readFile = function(filePath, cb) {
 /*
   mkdir
 */
-var mkdir = function(dirPath, cb)  {
+var mkdir = function(dirPath, mode, cb)  {
   fs.mkdir(dirPath, function(err) {
     cb(err);
   });
 };
-
 
 /*
   rename
@@ -119,9 +118,20 @@ var remove = function(dirPath, cb)  {
   });
 };
 
+/*
+  write file
+*/
+var write = function(filename, data, options, cb)  {
+  fs.writeFile(filename, data, options, function(err) {
+    cb(err);
+  });
+};
+
 module.exports.listAll = listAll;
 module.exports.list = list;
 module.exports.readFile = readFile;
 module.exports.mkdir = mkdir;
 module.exports.rename = rename;
 module.exports.remove = remove;
+module.exports.write = write;
+

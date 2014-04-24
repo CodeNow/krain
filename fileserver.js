@@ -36,7 +36,7 @@ app.use(function hasContainerId(req, res, next) {
   err = null;
   if (!req.query.containerId) {
     err = new Error("no contaienr id specified");
-    res.end();
+    next(err);
     return;
   }
   next(err);
@@ -59,12 +59,12 @@ app.use(mw.setContainerRoot);
   ]
 */
 app.get('/listall',
- function (req, res) {
+ function (req, res, next) {
   fsType.listAll(path.join(req.query.containerDir, req.query.path),
     req.query.directoriesOnly, 
     function (err, files) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.json(files);
@@ -86,11 +86,11 @@ app.get('/listall',
   ]
 */
 app.get('/list',
- function (req, res) {
+ function (req, res, next) {
   fsType.list(path.join(req.query.containerDir, req.query.path),
     function (err, files) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.json(files);
@@ -106,11 +106,11 @@ app.get('/list',
   "example file"
   "line 2 of example file"
 */
-app.get('/read', function (req, res) {
+app.get('/read', function (req, res, next) {
   fsType.readFile(path.join(req.query.containerDir, req.query.path), 
     function(err, content) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.send(200, content);
@@ -121,14 +121,18 @@ app.get('/read', function (req, res) {
   /mkdir : mkdir passed into path
   ?containerId = long version of container id used to find root file system
   ?path = path of dir to make
+  *optional*
+  ?mode = permissons of file (511 default 0777 octal)
 
   return: null
 */
-app.post('/mkdir', function (req, res)  {
+app.post('/mkdir', function (req, res, next)  {
+  var mode = req.query.mode || 511;
   fsType.mkdir(path.join(req.query.containerDir, req.query.path),
+    mode,
     function(err) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.send(200);
@@ -143,12 +147,12 @@ app.post('/mkdir', function (req, res)  {
 
   return: null
 */
-app.post('/rename', function (req, res)  {
+app.post('/rename', function (req, res, next)  {
   fsType.rename(path.join(req.query.containerDir, req.query.oldpath),
     path.join(req.query.containerDir, req.query.newpath),
     function(err) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.send(200);
@@ -162,17 +166,55 @@ app.post('/rename', function (req, res)  {
 
   return: null
 */
-app.post('/remove', function (req, res)  {
+app.post('/remove', function (req, res, next)  {
   console.log("req.query.path: " + req.query.path);
   console.log("req.query.containerDir: " + req.query.containerDir);
   fsType.remove(path.join(req.query.containerDir, req.query.path),
     function(err) {
       if (err) {
-        res.send(500, err);
+        next(err);
         return;
       }
       res.send(200);
     });
 });
 
+/* POST
+  /remove : remove a folder
+  ?containerId = long version of container id used to find root file system
+  ?path = path of file to create
+  body.content = data of file
+  *optional*
+  ?encoding = default utf8
+  ?mode = permissons of file default 438 (aka 0666 in Octal)
+
+  return: null
+*/
+app.post('/write', function (req, res, next)  {
+  console.log("req.query.path: " + req.query.path);
+  console.log("req.query.containerDir: " + req.query.containerDir);
+  var options = {
+    encoding: req.query.encoding || 'utf8',
+    mode: req.query.mode || 438
+  };
+  if (!req.body.content) {
+    next(new Error("no data for file"));
+  }
+  fsType.write(path.join(req.query.containerDir, req.query.path),
+    req.body.content,
+    options,
+    function(err) {
+      if (err) {
+        next(err);
+        return;
+      }
+      res.send(200);
+    });
+});
+
+
+app.use(function (err, req, res, next)  {
+  console.error(err);
+  res.send(500, err);
+});
 app.listen(3000);

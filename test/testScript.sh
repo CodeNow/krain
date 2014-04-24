@@ -10,3 +10,4 @@ rm -rf ./C1/newThing
 curl -X POST "localhost:3000/mkdir?path=/rename_me&containerId=/C1" | json_pp
 curl -X POST "localhost:3000/rename?oldpath=/rename_me&newpath=/renamed&containerId=/C1" | json_pp
 
+curl -X POST "localhost:3000/write?path=/newfile&data='this is some good data'&containerId=/C1" | json_pp
