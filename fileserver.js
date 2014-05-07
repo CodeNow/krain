@@ -1,13 +1,13 @@
 // fileserver
 // takes a dir and servers all files after
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
-var configs = {};
-configs.containerRoot = "/Users/anand/run/other/krain/test";
-
-var fsType = require('./fsDriver.js');
+var fileDriver = require('./fsDriver.js');
 var url = require('url');
-
+var morgan  = require('morgan');
+app.use(bodyParser());
+//app.use(morgan());
 /* GET
   /path/to/dir/
   list contents of directory
@@ -23,16 +23,23 @@ var url = require('url');
 */
 app.get("/*/", 
   function (req, res, next) { 
-    // console.dir(req);
     var dirPath =  decodeURI(url.parse(req.url).pathname);
-    console.log("dir dirPath: "+dirPath);
-    fsType.list(dirPath,
+    fileDriver.list(dirPath,
       function (err, files) {
         if (err) {
-          next(err);
-          return;
-        }
-        res.json(files);
+          // this this is a file, redirect to file path
+          if (err.code === 'ENOTDIR') {
+            var originalUrl = url.parse(req.originalUrl);
+            originalUrl.pathname = originalUrl.pathname.substr(0, originalUrl.pathname.length - 1);
+            var target = url.format(originalUrl);
+            res.statusCode = 303;
+            res.setHeader('Location', target);
+            res.end('Redirecting to ' + target);
+            return;
+          }
+        return next(err);
+      }
+      res.json(files);
     });
 });
 
@@ -48,12 +55,9 @@ app.get("/*/",
 */
 app.get("/*", 
   function (req, res, next) { 
-    // console.dir(req);
     var filePath = decodeURI(url.parse(req.url).pathname);
     var encoding = req.query.encoding || 'utf8';
-    console.log("encoding: "+ encoding+" filePath: "+filePath);
-
-    fsType.readFile(filePath, encoding, function(err, data) {
+    fileDriver.readFile(filePath, encoding, function(err, data) {
       if (err) {
         // this this is a dir, redirect to dir path
         if (err.code === 'EISDIR') {
@@ -68,12 +72,123 @@ app.get("/*",
         next(err);
         return;
       }
+      if (typeof data !== 'string') {
+        data = "";
+      }
       res.send(200, data);
     });
 });
 
+/* POST
+  /path/to/file/or/dir
+  creates or overwrites file
+  creates dir if it does not exisit.
+  renames or moves file if newpath exists
+  *optional*
+  body.newpath = if exist, move/rename file to this location.
+  body.clobber = if true will overwrite dest files (default false)
+  body.mkdirp = if true will create path to new locatiin (default false)
+
+  body.mode = permissons of file (defaults: file 438(0666) dir 511(0777))
+  body.encoding = default utf8
+
+  return: nothing
+*/
+app.post("/*", 
+  function (req, res, next) { 
+    var dirPath =  decodeURI(url.parse(req.url).pathname);
+    var isDir = dirPath.substr(-1) == '/';
+    var options = {};
+    // move/rename if newpath exists
+    if (req.body.newPath) {
+      options.clobber = req.body.clobber || false;
+      options.mkdirp = req.body.mkdirp || false;
+      fileDriver.move(dirPath, req.body.newPath, options, send200(req, res, next));
+      return;
+    }
+
+    if (isDir) {
+      var mode = req.body.mode || 511;
+      fileDriver.mkdir(dirPath, mode, send200(req, res, next));
+    } else {
+      options.encoding = req.body.encoding  || 'utf8';
+      options.mode = req.body.mode  || 438;
+      var data = req.body.content || '';
+      fileDriver.writeFile(dirPath, data, options, send200(req, res, next));
+    }
+});
+
+/*
+post. - create {...everything}
+put files/..path - update idempotent changes - aka not move
+post files/..path - move
+
+PUT. over write
+*/
+
+/* PUT
+  /path/to/file
+  make file
+  *optional*
+  body.mode = permissons of file (438 default 0666 octal)
+  body.encoding = default utf8
+
+  return: nothing
+*/
+app.put("/*", 
+  function (req, res, next) { 
+    var dirPath =  decodeURI(url.parse(req.url).pathname);
+    var isDir = dirPath.substr(-1) == '/';
+    var options = {};
+
+    if (isDir) {
+      var mode = req.body.mode || 511;
+      fileDriver.mkdir(dirPath, mode, send200(req, res, next));
+    } else {
+      options.encoding = req.body.encoding  || 'utf8';
+      options.mode = req.body.mode  || 438;
+      var data = req.body.content || '';
+      fileDriver.writeFile(dirPath, data, options, send200(req, res, next));
+    }
+});
+
+/* DEL
+  /path/to/dir/
+  deletes file
+
+  return: nothing
+*/
+app.del("/*/", 
+  function (req, res, next) { 
+    var dirPath =  decodeURI(url.parse(req.url).pathname);
+    fileDriver.rmdir(dirPath, send200(req, res, next));
+});
+
+/* DEL
+  /path/to/file
+  deletes file
+
+  return: nothing
+*/
+app.del("/*", 
+  function (req, res, next) { 
+    var dirPath =  decodeURI(url.parse(req.url).pathname);
+    fileDriver.unlink(dirPath, send200(req, res, next));
+});
+
+// Helpers
+var send200 = function(req, res, next) {
+  return function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.send(200);
+  };
+};
+
 app.use(function (err, req, res, next)  {
-  console.error(err);
+  console.dir(err);
   res.send(500, err);
 });
-app.listen(3000);
+
+module.exports = app;

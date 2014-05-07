@@ -3,7 +3,8 @@
 var fs = require('fs');
 var findit = require('findit');
 var path = require('path');
-
+var mv = require('mv');
+var rm = require('rimraf');
 var listAll = function(reqDir, onlyDir, cb) {
 /* returns array of files and dir in format :
 [
@@ -15,12 +16,11 @@ var listAll = function(reqDir, onlyDir, cb) {
   ...
 ]
 */
-  console.log("finding in "+reqDir);
   var finder = findit(reqDir);
   var files = [];
 
   finder.on('directory', function (dir, stat, stop) {
-    console.log("basename:"+path.basename(dir));
+    console.log("server: basename:"+path.basename(dir));
     files.push({
       name: path.basename(dir),
       path: path.dirname(dir),
@@ -54,17 +54,21 @@ var list = function(reqDir, cb) {
   ...
 ]
 */
-  console.log("finding in "+reqDir);
   var filesList = [];
   var cnt = 0;
-
   fs.readdir(reqDir, function (err, files) {
-    if (!files) {
-      cb(null, []);
-      return;
+    if (err) {
+      return cb(err);
+    }
+    if (files.length === 0) {
+      return cb(null, []);
     }
     var formatFileList = function(index) {
       return function (err, stat) {
+        if (err) {
+          cb(err);
+          return;
+        }
         filesList.push({
           name: files[index],
           path: reqDir,
@@ -72,7 +76,7 @@ var list = function(reqDir, cb) {
         });
         cnt++;
         if (cnt === files.length) {
-          cb(null, filesList);
+          return cb(null, filesList);
         }
       };
     };
@@ -86,45 +90,68 @@ var list = function(reqDir, cb) {
   read file from filepath
 */
 var readFile = function(filePath, encoding, cb) { 
-  fs.readFile(filePath, encoding, function (err, data) {
-    cb(err, data);
-  });
+  fs.readFile(filePath, encoding, cb);
 };
 
 /*
   mkdir
 */
 var mkdir = function(dirPath, mode, cb)  {
-  fs.mkdir(dirPath, function(err) {
-    cb(err);
-  });
+  fs.mkdir(dirPath, mode, cb);
 };
 
 /*
   rename
 */
 var rename = function(oldPath, newPath, cb)  {
-  fs.rename(oldPath, newPath, function(err) {
-    cb(err);
-  });
+  fs.rename(oldPath, newPath, cb);
 };
 
 /*
-  remove
+  delete directory
 */
-var remove = function(dirPath, cb)  {
-  fs.rmdir(dirPath, function(err) {
-    cb(err);
-  });
+var rmdir = function(dirPath, cb)  {
+  fs.rmdir(dirPath, cb);
 };
 
 /*
-  write file
+  writeFile
 */
-var write = function(filename, data, options, cb)  {
-  fs.writeFile(filename, data, options, function(err) {
-    cb(err);
-  });
+var writeFile = function(filename, data, options, cb)  {
+  fs.writeFile(filename, data, options, cb);
+};
+
+/*
+  delete file
+*/
+var unlink = function(filename, cb)  {
+  fs.unlink(filename, cb);
+};
+
+/*
+  move file
+*/
+var move = function (oldPath, newPath, opts, cb) {
+  // have to remove trailing slaches
+  if(oldPath.substr(-1) == '/') {
+        oldPath = oldPath.substr(0, oldPath.length - 1);
+  }
+  if(newPath.substr(-1) == '/') {
+        newPath = newPath.substr(0, newPath.length - 1);
+  }
+
+  // also work around bug for clobber in dir
+  if (opts.clobber) {
+    console.log("server: clobber");
+    rm(newPath, function(err) {
+      if (err) {
+        return cb(err);
+      }
+      return mv(oldPath, newPath, opts, cb);
+    });
+  } else {
+    return mv(oldPath, newPath, opts, cb);
+  }
 };
 
 module.exports.listAll = listAll;
@@ -132,6 +159,7 @@ module.exports.list = list;
 module.exports.readFile = readFile;
 module.exports.mkdir = mkdir;
 module.exports.rename = rename;
-module.exports.remove = remove;
-module.exports.write = write;
-
+module.exports.rmdir = rmdir;
+module.exports.writeFile = writeFile;
+module.exports.unlink = unlink;
+module.exports.move = move;
