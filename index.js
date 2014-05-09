@@ -1,10 +1,7 @@
 // Create terminal stream for a container using nsenter
-config = {};
+config = require("./configs.js");
 
-config.fsRoot = "/docker/execdriver/native";
-if(process.env.NODE_ENV === "test") {
-  config.fsRoot = __dirname+'/test';
-}
+console.log(config.fsRoot);
 var url = require('url');
 var express = require('express');
 var app = express();
