@@ -168,14 +168,16 @@ Lab.experiment('escape test', function () {
     });
   });
   Lab.test('try to delete file out of container folder', function (done) {
+    fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
-      .del('/../test.txt')
+      .del('/../file.txt')
       .send({container: {root: containerId}})
       .end(function(err, res){
         if (err) {
           return done(err);
         }
         fs.stat(path.join(escapePath + '/file.txt'), function (err, stats) {
+          fs.unlinkSync(escapePath + '/file.txt', 'testData');
           if (err) {
             return done(err);
           }
@@ -189,6 +191,7 @@ Lab.experiment('escape test', function () {
       .get('/../file.txt')
       .send({container: {root: containerId}})
       .end(function(err, res){
+        fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
           return done(err);
         } else if (res.statusCode === 200) {
@@ -231,6 +234,7 @@ Lab.experiment('escape test', function () {
         container : {root: containerId}
       })
       .end(function(err, res){
+        fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
           return done(err);
         } else if (200 !== res.statusCode) {
@@ -253,6 +257,7 @@ Lab.experiment('escape test', function () {
         container : {root: containerId}
       })
       .end(function(err, res){
+        fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
           return done(err);
         } else if (200 !== res.statusCode) {

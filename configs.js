@@ -1,6 +1,6 @@
 var eson = require('eson');
 var path = require('path');
-var env = process.env.NODE_ENV || 'development';
+var env = process.env.NODE_ENV;
 
 function readConfigs (filename) {
   return eson()

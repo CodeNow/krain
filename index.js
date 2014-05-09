@@ -1,5 +1,5 @@
 // Create terminal stream for a container using nsenter
-config = require("./configs.js");
+var config = require("./configs.js");
 
 console.log(config.fsRoot);
 var url = require('url');
@@ -15,7 +15,7 @@ var bodyParser = require('body-parser');
 
 // ensure container is passed correctly
 var containerValidator = function(req, res, next) {
-  if(!(req.body && req.body.container && req.body.container.root)) {
+  if(!(req.body.container && req.body.container.root)) {
     return res.send(403);
   }
   return next();
