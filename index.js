@@ -58,16 +58,6 @@ app.use(fileMapper);
 restfs(app);
 app.listen(port);
 
-/*
-  get container filesystem obj
-*/
-var getFs = function(containerId, cb) {
-  // validate container id
-  return {
-    root: config.fsRoot + containerId
-  };
-};
-
 module.exports = app;
 // var krain = function(Opts, Cb) {
 //   var opts = Opts;
