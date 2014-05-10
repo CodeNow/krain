@@ -34,7 +34,7 @@ var fileMapper = function(req, res, next) {
 
   dirPath = path.normalize(dirPath);
   dirPath = path.resolve(dirPath);
-  dirPath = path.join(config.fsRoot, req.body.container.root, dirPath);
+  dirPath = path.join(config.fsRoot, req.body.container.root, config.fsPostFix,dirPath);
   req.url = dirPath + oldSlash;
   // map new path if there is one
   if(req.body.newPath) {

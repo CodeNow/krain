@@ -1,3 +1,4 @@
 {
-  "fsRoot": "/docker/aufs/mnt"
+  "fsRoot": "/docker/devicemapper/mnt",
+  "fsPostFix": "/rootfs"
 }

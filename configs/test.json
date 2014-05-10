@@ -1,3 +1,4 @@
 {
-  "fsRoot": "{ROOT_DIR}/test"
+  "fsRoot": "{ROOT_DIR}/test",
+  "fsPostFix": ""
 }
