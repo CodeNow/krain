@@ -1,4 +1,5 @@
 {
   "fsRoot": "{ROOT_DIR}/test",
-  "fsPostFix": ""
+  "fsPostFix": "",
+  "port": 3000
 }

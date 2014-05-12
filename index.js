@@ -1,16 +1,11 @@
-// Create terminal stream for a container using nsenter
+// allow access to container filesystem via host
 var config = require("./configs.js");
-
-console.log(config.fsRoot);
 var url = require('url');
 var express = require('express');
 var app = express();
 var path = require('path');
-var which = require('which');
-var pty = require('pty.js');
-var nsenter = "";
 var restfs = require('rest-fs');
-var port = 3000;
+var port = config.port;
 var bodyParser = require('body-parser');
 
 // ensure container is passed correctly
@@ -56,38 +51,3 @@ restfs(app);
 app.listen(port);
 
 module.exports = app;
-// var krain = function(Opts, Cb) {
-//   var opts = Opts;
-//   var cb = Cb;
-//   if (typeof opts == 'function') {
-//     cb = Opts;
-//     opts = {};
-//   }
-//   which('nsenter', function(err, cmdpath) {
-//     if (err) {
-//       cb(new Error('nsenter not avalible. module useless'));
-//       return;
-//     }
-//     nsenter = cmdpath;
-//     cb();
-//   });
-// };
-
-//   pid of container to connect to *REQUIRED
-//   Args are argument for nsenter. defaults to all
-//   Opts are option for pty default empty
-//   returns stream to STDIN of container
-
-// var connect = function(pid, Args, Opts) {
-//   var args = Args || "--mount --uts --ipc --net --pid";
-//   var term = pty.spawn('bash',
-//     ["-c", "sudo "+nsenter+" --target " + pid + " " + args],
-//     Opts
-//    );
-//   return term;
-// };
-
-
-// module.exports.krain = krain;
-// module.exports.connect = connect;
-

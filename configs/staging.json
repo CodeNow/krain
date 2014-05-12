@@ -1,4 +1,5 @@
 {
   "fsRoot": "/docker/devicemapper/mnt",
-  "fsPostFix": "/rootfs"
+  "fsPostFix": "/rootfs",
+  "port": 3000
 }
