@@ -326,7 +326,7 @@ Lab.experiment('read tests', function () {
         var testPath = containerFullPath + file2Path;
         if (err) {
           return done(err);
-        } else if (!~testPath.indexOf(res.body[0].path+res.body[0].name)) {
+        } else if (!~testPath.indexOf(res.body[0].path+'/'+res.body[0].name)) {
           return done(new Error('file list incorrect'));
         }
         return done();
