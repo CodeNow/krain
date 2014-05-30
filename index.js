@@ -21,7 +21,7 @@ var fileMapper = function(req, res, next) {
   var oldSlash = "";
   var newSlash = "";
 
-  // map main url 
+  // map main url
   var dirPath =  decodeURI(url.parse(req.url).pathname);
   if(dirPath.substr(-1) === '/') {
     oldSlash = '/';
@@ -33,8 +33,8 @@ var fileMapper = function(req, res, next) {
   app.setModifyOut(function  (filepath) {
     return {
       "name": path.basename(filepath),
-      "path": path.dirname(filepath).replace(path.join(config.fsRoot, req.body.container.root, config.fsPostFix),""),
-      "dir" : filepath.substr(-1) == '/'
+      "path": path.normalize(path.dirname(filepath).replace(dirPath,"/")),
+      "dir" : filepath.substr(-1) === '/'
     };
   });
   req.url = dirPath + oldSlash;

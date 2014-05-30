@@ -5,7 +5,7 @@ var supertest = require('supertest');
 var async = require('async');
 var rimraf = require('rimraf');
 var walk = require('walkdir');
-
+var path = require('path');
 var containerFullPath = __dirname+"/container1";
 var containerId = "container1";
 
@@ -303,10 +303,10 @@ Lab.experiment('read tests', function () {
         cleanBase(cb);
       },
       function(cb) {
-        createDir(testdir, {mode: 0}, cb);
+        createDir(testdir, cb);
       },
       function(cb) {
-        createDir(emptydir, {mode: 0}, cb);
+        createDir(emptydir, cb);
       },
       function(cb) {
         createFile(file1Path, fileContent, cb);
@@ -323,10 +323,9 @@ Lab.experiment('read tests', function () {
       .send({container: {root: containerId}})
       .expect(200)
       .end(function(err, res){
-        var testPath = containerFullPath + file2Path;
         if (err) {
           return done(err);
-        } else if (!~testPath.indexOf(res.body[0].path+'/'+res.body[0].name)) {
+        } else if (res.body[0].path !== '/' || res.body[0].name !== path.basename(file2Path)) {
           return done(new Error('file list incorrect'));
         }
         return done();
