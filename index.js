@@ -35,7 +35,7 @@ var fileMapper = function(req, res, next) {
     return {
       "name": path.basename(filepath),
       "path": path.normalize(path.dirname(filepath).replace(path.dirname(dirPath),"/")),
-      "dir" : filepath.substr(-1) === '/'
+      "isDir" : filepath.substr(-1) === '/'
     };
   });
   req.url = dirPath + oldSlash;
