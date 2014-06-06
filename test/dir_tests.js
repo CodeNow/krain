@@ -289,12 +289,12 @@ Lab.experiment('basic delete tests', function () {
 
 
 Lab.experiment('read tests', function () {
-  var testdirR =  '/dir2';
-  var testdir =  testdirR+'/';
-  var emptydirR = '/dir1';
-  var emptydir =  emptydirR+'/';
-  var file1Path = '/test_file1.txt';
-  var file2Path = testdir+'test_file2.txt';
+  var dir1R =  '/dir2';
+  var dir1 =  dir1R+'/';
+  var dir2R = '/dir1';
+  var dir2 =  dir2R+'/';
+  var file1 = '/test_file1.txt';
+  var dir1_file1 = dir1+'test_file2.txt';
   var fileContent = "test";
 
   Lab.beforeEach(function (done) {
@@ -303,29 +303,30 @@ Lab.experiment('read tests', function () {
         cleanBase(cb);
       },
       function(cb) {
-        createDir(testdir, cb);
+        createDir(dir1, cb);
       },
       function(cb) {
-        createDir(emptydir, cb);
+        createDir(dir2, cb);
       },
       function(cb) {
-        createFile(file1Path, fileContent, cb);
+        createFile(file1, fileContent, cb);
       },
       function(cb) {
-        createFile(file2Path, fileContent, cb);
+        createFile(dir1_file1, fileContent, cb);
       }
     ], done);
   });
 
   Lab.test('get dir ls', function (done) {
     supertest(server)
-      .get(testdir)
+      .get(dir1)
       .send({container: {root: containerId}})
       .expect(200)
       .end(function(err, res){
+        console.log(res.body);
         if (err) {
           return done(err);
-        } else if (res.body[0].path !== '/' || res.body[0].name !== path.basename(file2Path)) {
+        } else if (res.body[0].path !== dir1R || res.body[0].name !== path.basename(dir1_file1)) {
           return done(new Error('file list incorrect'));
         }
         return done();
@@ -365,7 +366,7 @@ Lab.experiment('read tests', function () {
 
   Lab.test('get empty dir ls', function (done) {
     supertest(server)
-      .get(emptydir)
+      .get(dir2)
       .send({container: {root: containerId}})
       .expect(200)
       .end(function(err, res){
@@ -380,13 +381,13 @@ Lab.experiment('read tests', function () {
 
   Lab.test('get dir ls with redirect', function (done) {
     supertest(server)
-      .get(testdirR)
+      .get(dir1R)
       .send({container: {root: containerId}})
       .expect(303)
       .end(function(err, res){
         if (err) {
           return done(err);
-        } else if (!~res.text.indexOf('Redirecting to '+testdir)) {
+        } else if (!~res.text.indexOf('Redirecting to '+dir1)) {
           return done(new Error('not redirecting'));
         }
         return done();
@@ -395,13 +396,13 @@ Lab.experiment('read tests', function () {
 
   Lab.test('get empty dir ls with redirect', function (done) {
     supertest(server)
-      .get(emptydirR)
+      .get(dir2R)
       .send({container: {root: containerId}})
       .expect(303)
       .end(function(err, res){
         if (err) {
           return done(err);
-        } else if (!~res.text.indexOf('Redirecting to '+emptydir)) {
+        } else if (!~res.text.indexOf('Redirecting to '+dir2)) {
           return done(new Error('not redirecting'));
         }
         return done();
@@ -410,7 +411,7 @@ Lab.experiment('read tests', function () {
 
   Lab.test('get dir which does not exist', function (done) {
     supertest(server)
-      .get(emptydirR+"/fake")
+      .get(dir2R+"/fake")
       .send({container: {root: containerId}})
       .expect(500)
       .end(function(err, res){
