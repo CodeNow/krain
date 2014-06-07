@@ -323,7 +323,6 @@ Lab.experiment('read tests', function () {
       .send({container: {root: containerId}})
       .expect(200)
       .end(function(err, res){
-        console.log(res.body);
         if (err) {
           return done(err);
         } else if (res.body[0].path !== dir1R || res.body[0].name !== path.basename(dir1_file1)) {

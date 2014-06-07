@@ -32,9 +32,10 @@ var fileMapper = function(req, res, next) {
   dirPath = path.join(config.fsRoot, req.body.container.root, config.fsPostFix,dirPath);
 
   app.setModifyOut(function  (filepath) {
+    var rootPath = path.join(config.fsRoot, req.body.container.root, config.fsPostFix);
     return {
       "name": path.basename(filepath),
-      "path": path.normalize(path.dirname(filepath).replace(path.dirname(dirPath),"/")),
+      "path": path.normalize(path.dirname(filepath).replace(rootPath,"/")),
       "isDir" : filepath.substr(-1) === '/'
     };
   });
