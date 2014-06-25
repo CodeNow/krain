@@ -1,3 +1,17 @@
 machine:
   node:
     version: 0.10.26
+dependencies:
+  override:
+    - npm install
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean':
+        pwd: cookbook
+        timeout: 99999
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle exec berks install':
+        pwd: cookbook
+test:
+  override:
+    - npm test
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle exec rake test':
+        pwd: cookbook
+        timeout: 99999
