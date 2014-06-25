@@ -25,7 +25,7 @@ cookbook_file '/root/.ssh/runnable_krain-id_rsa' do
   mode 0600
   action :create
   notifies :deploy, "deploy[#{node['runnable_krain']['deploy_path']}]", :delayed
-  notifies :create, 'cookbook_file[/root/.ssh/runnable_krain.pub]', :immediately
+  notifies :create, 'cookbook_file[/root/.ssh/runnable_krain-id_rsa.pub]', :immediately
 end
 
 cookbook_file '/root/.ssh/runnable_krain-id_rsa.pub' do
