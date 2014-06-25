@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: runnable_api-server
+# Cookbook Name:: runnable_krain
 # Recipe:: default
 #
 # Copyright 2014, Runnable.com
@@ -57,7 +57,13 @@ deploy node['runnable_krain']['deploy_path'] do
   symlink_before_migrate({})
   symlinks({})
   action :deploy
+  notifies :run, 'execute[npm install]', :immediately
   notifies :create, 'template[/etc/init/krain.conf]', :immediately
+end
+
+execute 'npm install' do
+  cwd "#{node['runnable_krain']['deploy_path']}/current"
+  action :nothing
   notifies :restart, 'service[krain]', :delayed
 end
 
