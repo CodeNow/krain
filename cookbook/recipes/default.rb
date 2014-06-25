@@ -29,7 +29,7 @@ cookbook_file '/root/.ssh/runnable_krain-id_rsa' do
 end
 
 cookbook_file '/root/.ssh/runnable_krain-id_rsa.pub' do
-  source "#{runnable_krain-id_rsa.pub'
+  source 'runnable_krain-id_rsa.pub'
   owner 'root'
   group 'root'
   mode 0600
