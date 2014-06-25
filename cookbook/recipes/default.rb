@@ -7,11 +7,13 @@
 # All rights reserved - Do Not Redistribute
 #
 
+package 'git'
+
 node.set['runnable_nodejs']['version'] = '0.10.26'
 include_recipe 'runnable_nodejs'
 
 file '/tmp/git_sshwrapper.sh' do
-  content "#!/usr/bin/env bash\n/usr/bin/env ssh -o 'StrictHostKeyChecking=no' -i '/root/.ssh/runnable_krain' $1 $2\n"
+  content "#!/usr/bin/env bash\n/usr/bin/env ssh -o 'StrictHostKeyChecking=no' -i '/root/.ssh/runnable_krain-id_rsa' $1 $2\n"
   owner 'root'
   group 'root'
   mode 0755
