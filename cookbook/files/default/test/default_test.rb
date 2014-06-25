@@ -29,5 +29,9 @@ describe_recipe 'runnable_krain::default' do
     assert shell_out('lsof -n -i :3000').exitstatus == 0
   end
 
+  it 'passes deployment smoke test' do
+    assert shell_out("cd #{node['runnable_krain']['deploy_path']} && npm test").exitstatus.must_equal 0
+  end
+
 end
 
