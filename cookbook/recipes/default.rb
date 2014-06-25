@@ -18,6 +18,15 @@ file '/tmp/git_sshwrapper.sh' do
   action :create
 end
 
+directory '/root/.ssh' do
+  owner 'root'
+  group 'root'
+  mode 0700
+  action :create
+  notifies :create, 'cookbook_file[/root/.ssh/runnable_krain-id_rsa]', :immediately
+  notifies :create, 'cookbook_file[/root/.ssh/runnable_krain-id_rsa.pub]', :immediately
+end
+
 cookbook_file '/root/.ssh/runnable_krain-id_rsa' do
   source 'runnable_krain-id_rsa'
   owner 'root'
