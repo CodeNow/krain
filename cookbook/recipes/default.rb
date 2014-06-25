@@ -48,4 +48,17 @@ deploy node['runnable_krain']['deploy_path'] do
   symlink_before_migrate({})
   symlinks({})
   action :deploy
+  notifies :create, 'template[/etc/init/krain.conf', :immediately
+  notifies :restart, 'service[krain]', :delayed
+end
+
+template '/etc/init/krain.conf' do
+  source 'krain.conf.erb'
+  action :create
+  notifies :restart, 'service[krain]', :immediately
+end
+
+service 'krain' do
+  provider Chef::Provider::Service::Upstart
+  action [:start, :enable]
 end
