@@ -2,6 +2,9 @@ machine:
   node:
     version: 0.10.26
 dependencies:
+  cache_directories:
+    - "vendor/bundle"
+    - "node_modules"
   override:
     - npm install
     - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean':
