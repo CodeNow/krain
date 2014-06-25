@@ -1,0 +1,30 @@
+---
+driver:
+  name: ec2
+  aws_access_key_id: <%= ENV['aws_access_key_id'] %>
+  aws_secret_access_key: <%= ENV['aws_secret_access_key'] %>
+  aws_ssh_key_id: <%= ENV['aws_ssh_key_id'] %>
+  region:  <%= ENV['aws_region'] || 'us-west-1' %>
+  availability_zone:  <%= ENV['aws_availability_zone'] || 'us-west-1c' %>
+
+provisioner:
+  name: chef_solo
+  environments_path: 'files/default/test/environments'
+
+platforms:
+  - name: ubuntu-14.04
+    driver:
+      image_id: 'ami-a26265e7'
+      username: ubuntu
+    driver_config:
+      require_chef_omnibus: latest
+
+suites:
+  - name: default
+    provisioner:
+      solo_rb:
+        environment: integration
+    run_list:
+      - recipe[runnable_krain::default]
+      - recipe[minitest-handler]
+    attributes:

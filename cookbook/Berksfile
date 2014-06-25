@@ -1,0 +1,8 @@
+source 'https://api.berkshelf.com'
+
+metadata
+
+cookbook 'runnable_nodejs', github: 'CodeNow/runnable_nodejs-cookbook', tag: '0.1.2'
+
+cookbook 'chef-solo-search', github: 'edelight/chef-solo-search'
+cookbook 'minitest-handler', github: 'btm/minitest-handler-cookbook'
