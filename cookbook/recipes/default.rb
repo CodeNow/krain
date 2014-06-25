@@ -48,7 +48,7 @@ deploy node['runnable_krain']['deploy_path'] do
   symlink_before_migrate({})
   symlinks({})
   action :deploy
-  notifies :create, 'template[/etc/init/krain.conf', :immediately
+  notifies :create, 'template[/etc/init/krain.conf]', :immediately
   notifies :restart, 'service[krain]', :delayed
 end
 
