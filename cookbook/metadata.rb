@@ -9,6 +9,7 @@ version          '0.1.1'
 supports 'ubuntu'
 
 depends 'runnable_nodejs'
+depends 'build-essential'
 
 recipe "runnable_krain::default", "Installs and configures krain"
 
