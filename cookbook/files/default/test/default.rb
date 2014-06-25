@@ -21,6 +21,10 @@ describe_recipe 'runnable_krain::default' do
     link("#{node['runnable_krain']['deploy_path']}/current").must_exist.with(:link_type, :symbolic)
   end
 
+  it 'starts the krain service' do
+    service('krain').must_be_running
+  end
+
   it 'listens on port 3000' do
     assert shell_out('lsof -n -i :3000').exitstatus == 0
   end
