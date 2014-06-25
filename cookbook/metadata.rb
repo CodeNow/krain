@@ -11,3 +11,9 @@ supports 'ubuntu'
 depends 'runnable_nodejs'
 
 recipe "runnable_krain::default", "Installs and configures krain"
+
+attribute 'runnable_krain/deploy_path',
+  :display_name 	=> 'deploy path',
+  :description 		=> 'The full directory path where krain will be deployed',
+  :type 		=> 'string',
+  :default 		=> '/opt/krain'
