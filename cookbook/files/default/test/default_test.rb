@@ -22,7 +22,10 @@ describe_recipe 'runnable_krain::default' do
   end
 
   it 'starts the krain service' do
-    service('krain').must_be_running
+    r = Chef::Resource::Service.new("krain", @run_context)
+    r.provider Chef::Provider::Service::Upstart
+    current_resource = r.provider_for_action(:start).load_current_resource
+    current_resource.running.must_equal true
   end
 
   it 'listens on port 3000' do
