@@ -2,10 +2,8 @@
 description "<%= @name %>"
 author "Runnable"
 
-env NODE_BIN=node
 env APP_DIR=<%= @deploy_path %>
-env SCRIPT_FILE=<%= @script_file %> # Entry point for the nodejs app
-env LOG_FILE=<%= @logfile %>
+env LOG_FILE=<%= @log_file %>
 env NODE_ENV=<%= @node_env %>
 env NODE_PATH=<%= @deploy_path %>/lib
 
@@ -16,7 +14,7 @@ script
   touch $LOG_FILE
   chdir $APP_DIR
   echo $$ > /var/run/<%= @name %>.pid
-  exec $NODE_BIN $SCRIPT_FILE >> $LOG_FILE 2>&1
+  exec npm start >> $LOG_FILE 2>&1
 end script
 
 pre-start script

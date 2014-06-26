@@ -71,6 +71,12 @@ end
 
 template '/etc/init/krain.conf' do
   source 'krain.conf.erb'
+  variables({
+    :name 		=> 'krain',
+    :deploy_path 	=> node['runnable_krain']['deploy_path'],
+    :log_file		=> '/var/log/krain.log',
+    :node_env 		=> node.chef_environment
+  })
   action :create
   notifies :restart, 'service[krain]', :immediately
 end
