@@ -30,7 +30,7 @@ describe_recipe 'runnable_krain::default' do
   end
 
   it 'passes deployment smoke test' do
-    assert shell_out("cd #{node['runnable_krain']['deploy_path']} && NODE_ENV=testing npm test").exitstatus.must_equal 0
+    assert shell_out("cd #{node['runnable_krain']['deploy_path']}/current && NODE_ENV=testing npm test").exitstatus.must_equal 0
   end
 
 end
