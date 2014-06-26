@@ -4,7 +4,8 @@
   "description": "access namespace useing nsinit",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test lab -v -c -t 100"
+    "test": "NODE_ENV=test lab -v -c -t 100",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -12,7 +13,9 @@
   },
   "keywords": [
     "docker",
-    "nsenter"
+    "rest-fs",
+    "files",
+    "filesserver"
   ],
   "author": "Anandkumar Patel",
   "license": "MIT",
