@@ -73,7 +73,7 @@ template '/etc/init/krain.conf' do
   source 'krain.conf.erb'
   variables({
     :name 		=> 'krain',
-    :deploy_path 	=> node['runnable_krain']['deploy_path'],
+    :deploy_path 	=> "#{node['runnable_krain']['deploy_path']}/current",
     :log_file		=> '/var/log/krain.log',
     :node_env 		=> node.chef_environment
   })
