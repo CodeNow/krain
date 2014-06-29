@@ -21,6 +21,10 @@ describe_recipe 'runnable_krain::default' do
     link("#{node['runnable_krain']['deploy_path']}/current").must_exist.with(:link_type, :symbolic)
   end
 
+  it 'generates json configuration' do
+    assert_includes_content("#{node['runnable_krain']['deploy_path']}/current/configs/#{node.chef_environment}.json", node['runnable_krain']['config'].to_json)
+  end
+
   it 'starts the krain service' do
     r = Chef::Resource::Service.new("krain", @run_context)
     r.provider Chef::Provider::Service::Upstart
