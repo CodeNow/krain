@@ -22,7 +22,9 @@ describe_recipe 'runnable_krain::default' do
   end
 
   it 'generates json configuration' do
-    file("#{node['runnable_krain']['deploy_path']}/current/configs/#{node.chef_environment}.json").must_include node['runnable_krain']['config'].to_json
+    node['runnable_krain']['config'].each do |k,v|
+      file("#{node['runnable_krain']['deploy_path']}/current/configs/#{node.chef_environment}.json").must_include k
+    end
   end
 
   it 'starts the krain service' do
