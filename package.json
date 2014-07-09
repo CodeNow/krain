@@ -25,7 +25,7 @@
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
     "express": "^4.0.0",
-    "rest-fs": "anandkumarpatel/rest-fs",
+    "rest-fs": "0.0.9",
     "body-parser": "^1.0.2",
     "eson": "^0.5.0"
   },
