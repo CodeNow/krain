@@ -53,7 +53,10 @@ var fileMapper = function(req, res, next) {
   return next();
 };
 
-app.use(bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(containerValidator);
 app.use(fileMapper);
 restfs(app);
