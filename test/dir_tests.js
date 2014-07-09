@@ -247,7 +247,7 @@ Lab.experiment('basic delete tests', function () {
     supertest(server)
       .del(dirpath)
       .send({container: {root: containerId}})
-      .expect(500)
+      .expect(404)
       .end(function(err, res){
         if (err) {
           return done(err);
@@ -272,16 +272,8 @@ Lab.experiment('basic delete tests', function () {
       supertest(server)
         .del(filePath+'/')
         .send({container: {root: containerId}})
-        .expect(500)
-        .end(function(err, res){
-          if (err) {
-            return done(err);
-          } else if (res.body.code === 'ENOTDIR') {
-            return done();
-          } else {
-            return done(new Error('file was deleted'));
-          }
-        });
+        .expect(400)
+        .end(done);
     });
   });
 
@@ -412,15 +404,8 @@ Lab.experiment('read tests', function () {
     supertest(server)
       .get(dir2R+"/fake")
       .send({container: {root: containerId}})
-      .expect(500)
-      .end(function(err, res){
-        if (err) {
-          return done(err);
-        } else if (res.body.code !== 'ENOENT') {
-          return done(new Error('file should not exist'));
-        }
-        return done();
-      });
+      .expect(404)
+      .end(done);
   });
 });
 
