@@ -253,10 +253,7 @@ function rmFile(path, cb) {
           if (err) {
             return cb(err);
           } else if (200 !== res.statusCode) {
-            if(res.body) {
-              return cb(res.body);
-            }  
-            return cb(res.statusCode);  
+            return cb(err, res); 
           }
           fs.stat(path, function (err, stats) {
             if (err) {
@@ -286,27 +283,23 @@ Lab.experiment('basic delete tests', function () {
   });
 
   Lab.test('delete file that does not exist', function (done) {
-    rmFile('/fake.txt', function(err){
+    rmFile('/fake.txt', function(err, res){
       if(err) {
-        if(err.code === 'ENOENT') {
-          return done();
-        }
         return done(err);
       }
-      return done(new Error('file should not exist'));
+      Lab.expect(res.statusCode).to.equal(404);
+      return done();
     });
   });
 
   Lab.test('try to delete folder', function (done) {
     createDir(containerFullPath+'/delete_me', function (err) {
-      rmFile('/delete_me', function(err) {
-        if(err) {
-          if(err.code === 'EPERM' || err.code === 'EISDIR') {
-            return done();
-          }
+      rmFile('/delete_me', function (err, res) {
+        if (err) {
           return done(err);
         }
-        return done(new Error('folder should not be removed'));
+        Lab.expect(res.statusCode).to.equal(403);
+        return done();
       });
     });
   });
@@ -408,9 +401,8 @@ Lab.experiment('read tests', function () {
     readFile(file1path+'.fake.txt', function(err, res) {
         if (err) {
           return done(err);
-        } else if (res.body.code !== 'ENOENT') {
-          return done(new Error('file should not exist'));
         }
+        Lab.expect(res.statusCode).to.equal(404);
         return done();
       });
   });
