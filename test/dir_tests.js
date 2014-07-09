@@ -272,7 +272,7 @@ Lab.experiment('basic delete tests', function () {
       supertest(server)
         .del(filePath+'/')
         .send({container: {root: containerId}})
-        .expect(404)
+        .expect(400)
         .end(done);
     });
   });
