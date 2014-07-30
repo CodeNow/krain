@@ -1,11 +1,10 @@
 // allow access to container filesystem via host
-var config = require("./configs.js");
+require('./loadenv.js')();
 var url = require('url');
 var express = require('express');
 var app = express();
 var path = require('path');
 var restfs = require('rest-fs');
-var port = config.port;
 var bodyParser = require('body-parser');
 
 // ensure container is passed correctly
@@ -29,10 +28,14 @@ var fileMapper = function(req, res, next) {
 
   dirPath = path.normalize(dirPath);
   dirPath = path.resolve(dirPath);
-  dirPath = path.join(config.fsRoot, req.body.container.root, config.fsPostFix,dirPath);
-
+  dirPath = path.join(process.env.FS_ROOT,
+    req.body.container.root,
+    process.env.FS_POSTFIX,
+    dirPath);
   app.setModifyOut(function  (filepath) {
-    var rootPath = path.join(config.fsRoot, req.body.container.root, config.fsPostFix);
+    var rootPath = path.join(process.env.FS_ROOT,
+      req.body.container.root,
+      process.env.FS_POSTFIX);
     return {
       "name": path.basename(filepath),
       "path": path.normalize(path.dirname(filepath).replace(rootPath,"/")),
@@ -47,7 +50,9 @@ var fileMapper = function(req, res, next) {
     }
     req.body.newPath = path.normalize(req.body.newPath);
     req.body.newPath = path.resolve(req.body.newPath);
-    req.body.newPath = path.join(config.fsRoot, req.body.container.root, req.body.newPath);
+    req.body.newPath = path.join(process.env.FS_ROOT,
+      req.body.container.root,
+      req.body.newPath);
     req.body.newPath = req.body.newPath + newSlash;
   }
   return next();
@@ -60,6 +65,6 @@ app.use(bodyParser.urlencoded({
 app.use(containerValidator);
 app.use(fileMapper);
 restfs(app);
-app.listen(port);
+app.listen(process.env.PORT);
 
 module.exports = app;
