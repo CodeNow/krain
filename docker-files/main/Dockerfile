@@ -4,7 +4,7 @@
 ##
 
 # Pull base image.
-FROM registry.runnable.com/runnable/krain_base:latest
+FROM registry.runnable.com/core/krain_base:latest
 
 WORKDIR /
 

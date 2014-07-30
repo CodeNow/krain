@@ -4,7 +4,7 @@
 ##
 
 # Pull base image.
-FROM registry.runnable.com/runnable/base:latest
+FROM registry.runnable.com/core/base:latest
 
 WORKDIR /
 
