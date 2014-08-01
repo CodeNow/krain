@@ -1,3 +1,4 @@
+'use strict';
 // allow access to container filesystem via host
 require('./loadenv.js')();
 var url = require('url');
@@ -32,7 +33,8 @@ var fileMapper = function(req, res, next) {
     req.body.container.root,
     process.env.FS_POSTFIX,
     dirPath);
-  app.setModifyOut(function  (filepath) {
+
+  req.modifyOut = function  (filepath) {
     var rootPath = path.join(process.env.FS_ROOT,
       req.body.container.root,
       process.env.FS_POSTFIX);
@@ -41,7 +43,7 @@ var fileMapper = function(req, res, next) {
       "path": path.normalize(path.dirname(filepath).replace(rootPath,"/")),
       "isDir" : filepath.substr(-1) === '/'
     };
-  });
+  };
   req.url = dirPath + oldSlash;
   // map new path if there is one
   if(req.body.newPath) {
