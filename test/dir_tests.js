@@ -1,4 +1,4 @@
-require('../loadenv.js')();
+require('../lib/loadenv.js')();
 var Lab = require('lab');
 var fs = require('fs');
 var server = require('../index.js');
