@@ -76,7 +76,7 @@ Lab.experiment('escape test', function () {
     var req = supertest(server).put(filepath);
     if (opts) {
       req.send(opts);
-    } 
+    }
     req.end(function(err, res){
       if (err) {
         return cb(err);
@@ -217,8 +217,8 @@ Lab.experiment('escape test', function () {
         } else if (200 !== res.statusCode) {
           if(res.body && res.body.code === 'EEXIST') {
             return done();
-          }  
-          return done(res.statusCode);  
+          }
+          return done(res.statusCode);
         }
        return new Error('move excaped contaienr');
       });
@@ -240,8 +240,8 @@ Lab.experiment('escape test', function () {
         } else if (200 !== res.statusCode) {
           if(res.body && res.body.code === 'ENOENT') {
             return done();
-          }  
-          return done(res.statusCode);  
+          }
+          return done(res.statusCode);
         }
        return new Error('move excaped contaienr');
       });
@@ -263,13 +263,23 @@ Lab.experiment('escape test', function () {
         } else if (200 !== res.statusCode) {
           if(res.body && res.body.code === 'ENOENT') {
             return done();
-          }  
-          return done(res.statusCode);  
+          }
+          return done(res.statusCode);
         }
        return new Error('move excaped contaienr');
       });
   });
-
+  Lab.test('empty process.env.FS_POSTFIX test' , function (done) {
+    process.env.FS_POSTFIX = ' ';
+    createFile('/".."/test.file', function(err) {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          return done();
+        }
+        return done(err);
+      }
+      return done(new Error('file excaped!!'));
+    });
+  });
 });
 
-  
