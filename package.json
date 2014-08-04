@@ -1,6 +1,6 @@
 {
   "name": "krain",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "access namespace useing nsinit",
   "main": "./lib/app.js",
   "scripts": {
