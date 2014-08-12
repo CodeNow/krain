@@ -15,7 +15,7 @@ WORKDIR /krain
 RUN npm install
 
 # Expose port to Host
-EXPOSE 3000
+EXPOSE 3100
 
 # Define default command.
 CMD ["/usr/local/bin/npm", "start"]
