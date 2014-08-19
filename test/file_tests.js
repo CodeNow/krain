@@ -1,21 +1,18 @@
+'use strict';
 var Lab = require('lab');
+var lab = exports.lab = Lab.script();
 var fs = require('fs');
 var server = require('../index.js');
 var supertest = require('supertest');
 var containerFullPath = __dirname+"/container1";
 var containerId = "container1";
+var request = require('request');
 
 var async = require('async');
 var rimraf = require('rimraf');
-Lab.before(function (done) {
-  cleanBase(done);
-});
-Lab.after(function (done) {
-  rimraf(containerFullPath, done);
-});
 
 function cleanBase(cb) {
-  rimraf(containerFullPath, function(err) {
+  rimraf(containerFullPath, function() {
     fs.mkdir(containerFullPath, cb);
   });
 }
@@ -25,14 +22,14 @@ function createFile(filepath, opts, cb) {
     cb = opts;
     opts = {};
   }
-  opts.container = {
-      root: containerId
-  };
-  var req = supertest(server).put(filepath);
+  var req = supertest(server)
+    .put(filepath)
+    .query({container: containerId});
+
   if (opts) {
     req.send(opts);
   }
-  req.end(function(err, res){
+  req.end(function(err){
     if (err) {
       return cb(err);
     }
@@ -53,14 +50,14 @@ function createFilePost(filepath, opts, cb) {
     cb = opts;
     opts = {};
   }
-  opts.container = {
-      root: containerId
-  };
-  var req = supertest(server).post(filepath);
+  var req = supertest(server)
+    .post(filepath)
+    .query({container: containerId});
+
   if (opts) {
     req.send(opts);
   }
-  req.end(function(err, res){
+  req.end(function(err){
     if (err) {
       return cb(err);
     }
@@ -79,11 +76,11 @@ function createFilePost(filepath, opts, cb) {
 function moveFile(oldpath, newPath, doClobber, doMkdirp, cb) {
   supertest(server)
     .post(oldpath)
+    .query({container: containerId})
     .send({
       newPath: newPath,
       clobber: doClobber,
       mkdirp: doMkdirp,
-      container : {root: containerId}
     })
     .end(function(err, res){
       if (err) {
@@ -97,7 +94,7 @@ function moveFile(oldpath, newPath, doClobber, doMkdirp, cb) {
       async.series([
         function(next) {
           // old path should not exist
-          fs.stat(containerFullPath+oldpath, function (err, stats) {
+          fs.stat(containerFullPath+oldpath, function (err) {
             if (err) {
               if (err.code === 'ENOENT') {
                 return next();
@@ -128,112 +125,69 @@ function createDir(dirPath, cb) {
   fs.mkdir(dirPath, cb);
 }
 
-Lab.experiment('basic create tests', function () {
-  Lab.beforeEach(function (done) {
+lab.experiment('normal HTTP request', function () {
+  lab.before(function (done) {
     cleanBase(done);
   });
-
-  Lab.test('create empty file PUT', function (done) {
-    var filepath = '/test_file.txt';
-    createFile(filepath, done);
+  lab.after(function (done) {
+    rimraf(containerFullPath, done);
   });
 
-  Lab.test('create empty file POST', function (done) {
-    var filepath = '/test_file.txt';
-    createFilePost(filepath, done);
-  });
-
-  Lab.test('create empty file POST w/ encoding', function (done) {
-    var filepath = '/test_file.txt';
-    createFilePost(filepath, {encoding: "utf8"}, done);
-  });
-
-  Lab.test('create empty file POST w/ mode', function (done) {
-    var filepath = '/test_file.txt';
-    createFilePost(filepath, {mode: 777}, done);
-  });
-
-  Lab.test('create empty file POST w/ content', function (done) {
-    var filepath = '/test_file.txt';
-    createFilePost(filepath, {content: "testText"}, done);
-  });
-
-  Lab.test('create empty file PUT w/ encoding', function (done) {
-    var filepath = '/test_file.txt';
-    createFile(filepath, {encoding: "utf8"}, done);
-  });
-
-  Lab.test('create empty file PUT w/ mode', function (done) {
-    var filepath = '/test_file.txt';
-    createFile(filepath, {mode: 777}, done);
-  });
-
-  Lab.test('create file with spaces in filename PUT', function (done) {
-    var filepath = '/test file.txt';
-    createFile(filepath, done);
-  });
-
-  Lab.test('create file with text PUT', function (done) {
-    var filepath = '/test_file.txt';
-    var testText = "test";
-    createFile(filepath, {content: testText}, function(err) {
-      fs.readFile(containerFullPath+filepath, {
-        encoding: 'utf8'
-      }, function (err, data) {
-        if (err) {
-          return done(err);
-        } else if (!~data.indexOf(testText)) {
-          return done(new Error('incorrect data'));
-        } else {
-          return done();
-        }
-      });
+  lab.experiment('basic create tests', function () {
+    lab.beforeEach(function (done) {
+      cleanBase(done);
     });
-  });
 
-  Lab.test('create file with text and spaces in file name PUT', function (done) {
-    var filepath = '/test file.txt';
-    var testText = "test";
-    createFile(filepath, {content: testText}, function(err) {
-      fs.readFile(containerFullPath+filepath, {
-        encoding: 'utf8'
-      }, function (err, data) {
-        if (err) {
-          return done(err);
-        } else if (!~data.indexOf(testText)) {
-          return done(new Error('incorrect data'));
-        } else {
-          return done();
-        }
-      });
+    lab.test('create empty file PUT', function (done) {
+      var filepath = '/test_file.txt';
+      createFile(filepath, done);
     });
-  });
 
-  Lab.test('create file in path that does not exist PUT', function (done) {
-    var filepath = '/fake/test_file.txt';
-    createFile(filepath,
-      function (err, data) {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            return done();
-          }
-          return done(new Error('file should not have been created'));
-        }
-      });
-  });
+    lab.test('create empty file POST', function (done) {
+      var filepath = '/test_file.txt';
+      createFilePost(filepath, done);
+    });
 
-  Lab.test('overwrite file PUT', function (done) {
-    var filepath = '/test_file.txt';
-    var testText = "test";
-    var testText2 = "wonder";
-    createFile(filepath, {content: testText}, function(err) {
-      createFile(filepath, {content: testText2}, function(err) {
+    lab.test('create empty file POST w/ encoding', function (done) {
+      var filepath = '/test_file.txt';
+      createFilePost(filepath, {encoding: "utf8"}, done);
+    });
+
+    lab.test('create empty file POST w/ mode', function (done) {
+      var filepath = '/test_file.txt';
+      createFilePost(filepath, {mode: 777}, done);
+    });
+
+    lab.test('create empty file POST w/ content', function (done) {
+      var filepath = '/test_file.txt';
+      createFilePost(filepath, {content: "testText"}, done);
+    });
+
+    lab.test('create empty file PUT w/ encoding', function (done) {
+      var filepath = '/test_file.txt';
+      createFile(filepath, {encoding: "utf8"}, done);
+    });
+
+    lab.test('create empty file PUT w/ mode', function (done) {
+      var filepath = '/test_file.txt';
+      createFile(filepath, {mode: 777}, done);
+    });
+
+    lab.test('create file with spaces in filename PUT', function (done) {
+      var filepath = '/test file.txt';
+      createFile(filepath, done);
+    });
+
+    lab.test('create file with text PUT', function (done) {
+      var filepath = '/test_file.txt';
+      var testText = "test";
+      createFile(filepath, {content: testText}, function(err) {
         fs.readFile(containerFullPath+filepath, {
           encoding: 'utf8'
         }, function (err, data) {
           if (err) {
             return done(err);
-          } else if (!~data.indexOf(testText2)) {
+          } else if (!~data.indexOf(testText)) {
             return done(new Error('incorrect data'));
           } else {
             return done();
@@ -241,122 +195,162 @@ Lab.experiment('basic create tests', function () {
         });
       });
     });
-  });
 
-});
-
-function rmFile(path, cb) {
-  supertest(server)
-        .del(path)
-        .send({container: {root: containerId}})
-        .end(function(err, res){
+    lab.test('create file with text and spaces in file name PUT', function (done) {
+      var filepath = '/test file.txt';
+      var testText = "test";
+      createFile(filepath, {content: testText}, function(err) {
+        fs.readFile(containerFullPath+filepath, {
+          encoding: 'utf8'
+        }, function (err, data) {
           if (err) {
-            return cb(err);
-          } else if (200 !== res.statusCode) {
-            return cb(err, res);
+            return done(err);
+          } else if (!~data.indexOf(testText)) {
+            return done(new Error('incorrect data'));
+          } else {
+            return done();
           }
-          fs.stat(path, function (err, stats) {
+        });
+      });
+    });
+
+    lab.test('create file in path that does not exist PUT', function (done) {
+      var filepath = '/fake/test_file.txt';
+      createFile(filepath,
+        function (err, data) {
+          if (err) {
+            if (err.code === 'ENOENT') {
+              return done();
+            }
+            return done(new Error('file should not have been created'));
+          }
+        });
+    });
+
+    lab.test('overwrite file PUT', function (done) {
+      var filepath = '/test_file.txt';
+      var testText = "test";
+      var testText2 = "wonder";
+      createFile(filepath, {content: testText}, function(err) {
+        createFile(filepath, {content: testText2}, function(err) {
+          fs.readFile(containerFullPath+filepath, {
+            encoding: 'utf8'
+          }, function (err, data) {
             if (err) {
-              if (err.code === 'ENOENT') {
-                return cb();
-              }
-              return cb(err);
+              return done(err);
+            } else if (!~data.indexOf(testText2)) {
+              return done(new Error('incorrect data'));
             } else {
-              return cb(new Error('file did not get deleted'));
+              return done();
             }
           });
+        });
       });
-}
-Lab.experiment('basic delete tests', function () {
-  Lab.beforeEach(function (done) {
-    cleanBase(done);
-  });
-
-  Lab.test('delete file', function (done) {
-    var filepath = '/test_file.txt';
-    createFile(filepath, function(err) {
-      if (err) {
-        return done(err);
-      }
-      rmFile(filepath, done);
     });
+
   });
 
-  Lab.test('delete file that does not exist', function (done) {
-    rmFile('/fake.txt', function(err, res){
-      if(err) {
-        return done(err);
-      }
-      Lab.expect(res.statusCode).to.equal(404);
-      return done();
+  function rmFile(path, cb) {
+    supertest(server)
+          .del(path)
+          .query({container: containerId})
+          .end(function(err, res){
+            if (err) {
+              return cb(err);
+            } else if (200 !== res.statusCode) {
+              return cb(err, res);
+            }
+            fs.stat(path, function (err, stats) {
+              if (err) {
+                if (err.code === 'ENOENT') {
+                  return cb();
+                }
+                return cb(err);
+              } else {
+                return cb(new Error('file did not get deleted'));
+              }
+            });
+        });
+  }
+  lab.experiment('basic delete tests', function () {
+    lab.beforeEach(function (done) {
+      cleanBase(done);
     });
-  });
 
-  Lab.test('try to delete folder', function (done) {
-    createDir(containerFullPath+'/delete_me', function (err) {
-      rmFile('/delete_me', function (err, res) {
+    lab.test('delete file', function (done) {
+      var filepath = '/test_file.txt';
+      createFile(filepath, function(err) {
         if (err) {
           return done(err);
         }
-        if (res.statusCode === 400 || res.statusCode === 403){
-          return done();
+        rmFile(filepath, done);
+      });
+    });
+
+    lab.test('delete file that does not exist', function (done) {
+      rmFile('/fake.txt', function(err, res){
+        if(err) {
+          return done(err);
         }
-        return done(new Error('should not delete folder'));
+        Lab.expect(res.statusCode).to.equal(404);
+        return done();
+      });
+    });
+
+    lab.test('try to delete folder', function (done) {
+      createDir(containerFullPath+'/delete_me', function (err) {
+        rmFile('/delete_me', function (err, res) {
+          if (err) {
+            return done(err);
+          }
+          if (res.statusCode === 400 || res.statusCode === 403){
+            return done();
+          }
+          return done(new Error('should not delete folder'));
+        });
       });
     });
   });
-});
 
-var readFile= function (filepath, query, cb) {
-  if(typeof query === 'function') {
-    cb = query;
-    query = null;
-  }
-  var req = supertest(server).get(filepath);
-  if (query) {
-    req.query(query);
-  }
-  req
-    .send({container: {root: containerId}})
-    .end(cb);
-};
+  var readFile= function (filepath, query, cb) {
+    if(typeof query === 'function') {
+      cb = query;
+      query = null;
+    }
+    var req = supertest(server).get(filepath);
+    if (query) {
+      req.query(query);
+    }
+    req
+      .query({container: containerId})
+      .end(cb);
+  };
 
-Lab.experiment('read tests', function () {
-  var file1path = '/test_file1.txt';
-  var file2path = '/test_file2.txt';
-  var fileContent = "test";
+  lab.experiment('read tests', function () {
+    var file1path = '/test_file1.txt';
+    var file2path = '/test_file2.txt';
+    var fileContent = "test";
 
-  Lab.before(function (done) {
-    async.series([
-      function(cb) {
-        cleanBase(cb);
-      },
-      function(cb) {
-        createFile(file1path, cb);
-      },
-      function(cb) {
-        createFile(file2path, {content: fileContent}, cb);
-      }
-    ], done);
-  });
-
-  Lab.after(function (done) {
-    cleanBase(done);
-  });
-
-  Lab.test('read file', function (done) {
-    readFile(file2path, function(err, res) {
-      if (err) {
-        return done(err);
-      } else if (!~fileContent.indexOf(res.text)) {
-        return done(new Error('file read wrong data'));
-      }
-      return done();
+    lab.before(function (done) {
+      async.series([
+        function(cb) {
+          cleanBase(cb);
+        },
+        function(cb) {
+          createFile(file1path, cb);
+        },
+        function(cb) {
+          createFile(file2path, {content: fileContent}, cb);
+        }
+      ], done);
     });
-  });
 
-  Lab.test('read file utf8', function (done) {
-    readFile(file2path, {encoding: 'utf8'}, function(err, res) {
+    lab.after(function (done) {
+      cleanBase(done);
+    });
+
+    lab.test('read file', function (done) {
+      readFile(file2path, function(err, res) {
         if (err) {
           return done(err);
         } else if (!~fileContent.indexOf(res.text)) {
@@ -364,136 +358,212 @@ Lab.experiment('read tests', function () {
         }
         return done();
       });
+    });
+
+    lab.test('read file utf8', function (done) {
+      readFile(file2path, {encoding: 'utf8'}, function(err, res) {
+          if (err) {
+            return done(err);
+          } else if (!~fileContent.indexOf(res.text)) {
+            return done(new Error('file read wrong data'));
+          }
+          return done();
+        });
+    });
+
+    lab.test('read empty file', function (done) {
+      readFile(file1path, {encoding: 'utf8'}, function(err, res) {
+          if (err) {
+            return done(err);
+          } else if (res.text !== "") {
+            return done(new Error('file should be empty'));
+          }
+          return done();
+        });
+    });
+
+    lab.test('read file with redirect', function (done) {
+      readFile(file2path+'/', function(err, res) {
+          if (err) {
+            return done(err);
+          } else if (!~res.text.indexOf('Redirecting to '+file2path)) {
+            return done(new Error('not redirecting'));
+          }
+          return done();
+        });
+    });
+
+    lab.test('read empty file with redirect', function (done) {
+      readFile(file1path+'/', function(err, res) {
+          if (err) {
+            return done(err);
+          } else if (!~res.text.indexOf('Redirecting to '+file1path)) {
+            return done(new Error('not redirecting'));
+          }
+          return done();
+        });
+    });
+
+    lab.test('read file that does not exist', function (done) {
+      readFile(file1path+'.fake.txt', function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          Lab.expect(res.statusCode).to.equal(404);
+          return done();
+        });
+    });
   });
 
-  Lab.test('read empty file', function (done) {
-    readFile(file1path, {encoding: 'utf8'}, function(err, res) {
-        if (err) {
-          return done(err);
-        } else if (res.text !== "") {
-          return done(new Error('file should be empty'));
-        }
-        return done();
-      });
-  });
+  lab.experiment('move tests', function () {
+    var dir1path =  '/test_dir1/';
+    var dir2path =  '/test_dir2/';
+    var file1path = '/test_file1.txt';
+    var file2path = '/test_file2.txt';
+    var fileContent = "test";
 
-  Lab.test('read file with redirect', function (done) {
-    readFile(file2path+'/', function(err, res) {
-        if (err) {
-          return done(err);
-        } else if (!~res.text.indexOf('Redirecting to '+file2path)) {
-          return done(new Error('not redirecting'));
+    lab.before(function (done) {
+      async.series([
+        function(cb) {
+          createDir(containerFullPath+dir1path, cb);
+        },
+        function(cb) {
+          createDir(containerFullPath+dir2path, cb);
+        },
+        function(cb) {
+          createFile(file1path, cb);
+        },
+        function(cb) {
+          createFile(file2path, {content: fileContent}, cb);
         }
-        return done();
-      });
-  });
+      ], done);
+    });
+    lab.after(function (done) {
+      cleanBase(done);
+    });
 
-  Lab.test('read empty file with redirect', function (done) {
-    readFile(file1path+'/', function(err, res) {
-        if (err) {
-          return done(err);
-        } else if (!~res.text.indexOf('Redirecting to '+file1path)) {
-          return done(new Error('not redirecting'));
-        }
-        return done();
-      });
-  });
+    lab.test('move file in same directory (rename)', function (done) {
+      moveFile(file1path, file1path+'.test', false, false, done);
+    });
 
-  Lab.test('read file that does not exist', function (done) {
-    readFile(file1path+'.fake.txt', function(err, res) {
-        if (err) {
+    lab.test('move file into directory', function (done) {
+      moveFile(file1path+'.test', dir1path+'/test_file1.txt.test', false, false, done);
+    });
+
+    lab.test('move file into another directory', function (done) {
+      moveFile(dir1path+'/test_file1.txt.test', dir2path+'/test_file1.txt.test', false, false, done);
+    });
+
+    lab.test('move file out of directory', function (done) {
+      moveFile(dir2path+'/test_file1.txt.test', file1path, false, false, done);
+    });
+
+    lab.test('move file over existing file', function (done) {
+      moveFile(file1path, file2path, false, false, function(err) {
+        if(err) {
+          if(err.code === 'EEXIST') {
+            return done();
+          }
           return done(err);
         }
-        Lab.expect(res.statusCode).to.equal(404);
-        return done();
+        return done(new Error('file was not supposed to be moved'));
       });
+    });
+
+    lab.test('move file over existing file with clobber', function (done) {
+      moveFile(file1path, file2path, true, false, done);
+    });
+
+    lab.test('move file to nonexisting path', function (done) {
+      moveFile(file2path, '/fake/path.txt', false, false, function(err) {
+        if(err) {
+          if(err.code === 'ENOENT') {
+            return done();
+          }
+          return done(err);
+        }
+        return done(new Error('file was not supposed to be moved'));
+      });
+    });
+
+    lab.test('move file to nonexisting path with clober', function (done) {
+      moveFile(file2path, '/fake/path.txt', true, false, function(err) {
+        if(err) {
+          if(err.code === 'ENOENT') {
+            return done();
+          }
+          return done(err);
+        }
+        return done(new Error('file was not supposed to be moved'));
+      });
+    });
+
+    lab.test('move file to nonexisting path with mkdirp', function (done) {
+      moveFile(file2path, '/new/test.txt', false, true, done);
+    });
   });
 });
 
-Lab.experiment('move tests', function () {
-  var dir1path =  '/test_dir1/';
-  var dir2path =  '/test_dir2/';
-  var file1path = '/test_file1.txt';
-  var file2path = '/test_file2.txt';
-  var fileContent = "test";
-
-  Lab.before(function (done) {
-    async.series([
-      function(cb) {
-        createDir(containerFullPath+dir1path, cb);
-      },
-      function(cb) {
-        createDir(containerFullPath+dir2path, cb);
-      },
-      function(cb) {
-        createFile(file1path, cb);
-      },
-      function(cb) {
-        createFile(file2path, {content: fileContent}, cb);
-      }
-    ], done);
-  });
-  Lab.after(function (done) {
+lab.experiment('stream tests', function () {
+  lab.before(function (done) {
     cleanBase(done);
   });
-
-  Lab.test('move file in same directory (rename)', function (done) {
-    moveFile(file1path, file1path+'.test', false, false, done);
+  lab.after(function (done) {
+    rimraf(containerFullPath, done);
   });
 
-  Lab.test('move file into directory', function (done) {
-    moveFile(file1path+'.test', dir1path+'/test_file1.txt.test', false, false, done);
+  var testPort = 52232;
+  lab.test('POST - stream file', function (done) {
+    var dataFile = containerFullPath+'/data.txt';
+    var testText = 'lots of text';
+    var testFile = '/stream_test.txt';
+    var testFilePath = containerFullPath+testFile;
+
+    fs.writeFileSync(dataFile, testText);
+    var app = server.listen(testPort,
+      function() {
+        var r = request.post('http://localhost:'+testPort+testFile+'?container='+containerId);
+        fs.createReadStream(dataFile).pipe(r);
+        r.on('end', function(err) {
+          app.close(function() {
+            if (err) {
+              return done(err);
+            }
+            var data = '';
+            try{
+              data = fs.readFileSync(testFilePath);
+            } catch(err) {
+              return done(err);
+            }
+            Lab.expect(data.toString()).to.equal(testText);
+            done();
+          });
+        });
+      });
   });
 
-  Lab.test('move file into another directory', function (done) {
-    moveFile(dir1path+'/test_file1.txt.test', dir2path+'/test_file1.txt.test', false, false, done);
-  });
+  lab.test('POST - stream existing file', function (done) {
+    var dataFile = containerFullPath+'/data.txt';
+    var testText = 'lots of text';
+    var testFile = '/stream_test.txt';
+    var testFilePath = containerFullPath+testFile;
 
-  Lab.test('move file out of directory', function (done) {
-    moveFile(dir2path+'/test_file1.txt.test', file1path, false, false, done);
-  });
-
-  Lab.test('move file over existing file', function (done) {
-    moveFile(file1path, file2path, false, false, function(err) {
-      if(err) {
-        if(err.code === 'EEXIST') {
-          return done();
-        }
-        return done(err);
-      }
-      return done(new Error('file was not supposed to be moved'));
-    });
-  });
-
-  Lab.test('move file over existing file with clobber', function (done) {
-    moveFile(file1path, file2path, true, false, done);
-  });
-
-  Lab.test('move file to nonexisting path', function (done) {
-    moveFile(file2path, '/fake/path.txt', false, false, function(err) {
-      if(err) {
-        if(err.code === 'ENOENT') {
-          return done();
-        }
-        return done(err);
-      }
-      return done(new Error('file was not supposed to be moved'));
-    });
-  });
-
-  Lab.test('move file to nonexisting path with clober', function (done) {
-    moveFile(file2path, '/fake/path.txt', true, false, function(err) {
-      if(err) {
-        if(err.code === 'ENOENT') {
-          return done();
-        }
-        return done(err);
-      }
-      return done(new Error('file was not supposed to be moved'));
-    });
-  });
-
-  Lab.test('move file to nonexisting path with mkdirp', function (done) {
-    moveFile(file2path, '/new/test.txt', false, true, done);
+    fs.writeFileSync(dataFile, testText);
+    fs.writeFileSync(testFilePath, testText);
+    var app = server.listen(testPort,
+      function() {
+        fs.createReadStream(dataFile)
+        .pipe(request.post('http://localhost:'+testPort+testFile))
+        .on('end', function(err) {
+          app.close(function() {
+            if (err) {
+              return done(err);
+            }
+            var data = fs.readFileSync(testFilePath);
+            Lab.expect(data.toString()).to.equal(testText);
+            done();
+          });
+        });
+      });
   });
 });
