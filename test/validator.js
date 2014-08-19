@@ -1,4 +1,6 @@
+'use strict';
 var Lab = require('lab');
+var lab = exports.lab = Lab.script();
 var server = require('../index.js');
 var supertest = require('supertest');
 var containerFullPath = __dirname+"/container1";
@@ -9,40 +11,40 @@ var async = require('async');
 var rimraf = require('rimraf');
 var path = require('path');
 
-Lab.experiment('forbidden test', function () {
-  Lab.test('DELETE', function (done) {
+lab.experiment('forbidden test', function () {
+  lab.test('DELETE', function (done) {
     supertest(server)
       .del("/test")
       .expect(403)
       .end(done);
   });
-  Lab.test('POST', function (done) {
+  lab.test('POST', function (done) {
     supertest(server)
       .post("/test")
       .expect(403)
       .end(done);
     });
-  Lab.test('PUT', function (done) {
+  lab.test('PUT', function (done) {
     supertest(server)
       .put("/test")
       .expect(403)
       .end(done);
   });
-  Lab.test('PUT with incorrect format', function (done) {
+  lab.test('PUT with incorrect format', function (done) {
     supertest(server)
       .put("/test")
       .send({container: "invalid"})
       .expect(403)
       .end(done);
   });
-  Lab.test('PUT with incorrect format', function (done) {
+  lab.test('PUT with incorrect format', function (done) {
     supertest(server)
       .put("/test")
       .send({other: 'id'})
       .expect(403)
       .end(done);
   });
-  Lab.test('GET', function (done) {
+  lab.test('GET', function (done) {
     supertest(server)
       .get("/test")
       .expect(403)
@@ -50,11 +52,11 @@ Lab.experiment('forbidden test', function () {
   });
 });
 
-Lab.experiment('escape test', function () {
-  Lab.beforeEach(function (done) {
+lab.experiment('escape test', function () {
+  lab.beforeEach(function (done) {
     cleanBase(done);
   });
-  Lab.afterEach(function (done) {
+  lab.afterEach(function (done) {
     rimraf.sync(containerFullPath);
     done();
   });
@@ -70,10 +72,10 @@ Lab.experiment('escape test', function () {
       cb = opts;
       opts = {};
     }
-    opts.container = {
-        root: containerId
-    };
-    var req = supertest(server).put(filepath);
+    var req = supertest(server)
+      .put(filepath)
+      .query({container: containerId});
+
     if (opts) {
       req.send(opts);
     }
@@ -93,7 +95,7 @@ Lab.experiment('escape test', function () {
     });
   }
 
-  Lab.test('try to create file out of container folder', function (done) {
+  lab.test('try to create file out of container folder', function (done) {
     createFile('/../test.file', function(err) {
       if (err) {
         if (err.code === 'ENOENT') {
@@ -104,7 +106,7 @@ Lab.experiment('escape test', function () {
       return done(new Error('file excaped!!'));
     });
   });
-  Lab.test('try to create file out of container folder', function (done) {
+  lab.test('try to create file out of container folder', function (done) {
     createFile('/../../../../../test.file', function(err) {
       if (err) {
         if (err.code === 'ENOENT') {
@@ -115,7 +117,7 @@ Lab.experiment('escape test', function () {
       return done(new Error('file excaped!!'));
     });
   });
-  Lab.test('try to create file out of container folder', function (done) {
+  lab.test('try to create file out of container folder', function (done) {
     createFile('/./../test.file', function(err) {
       if (err) {
         if (err.code === 'ENOENT') {
@@ -126,7 +128,7 @@ Lab.experiment('escape test', function () {
       return done(new Error('file excaped!!'));
     });
   });
-  Lab.test('try to create file out of container folder', function (done) {
+  lab.test('try to create file out of container folder', function (done) {
     createFile('/".."/test.file', function(err) {
       if (err) {
         if (err.code === 'ENOENT') {
@@ -137,7 +139,7 @@ Lab.experiment('escape test', function () {
       return done(new Error('file excaped!!'));
     });
   });
-  Lab.test('try to create file out of container folder', function (done) {
+  lab.test('try to create file out of container folder', function (done) {
     createFile('~/test.file', function(err) {
       if (err) {
         if (err.code === 'ECONNRESET') {
@@ -148,10 +150,10 @@ Lab.experiment('escape test', function () {
       return done(new Error('file excaped!!'));
     });
   });
-  Lab.test('try to create file out of container folder PUT', function (done) {
+  lab.test('try to create file out of container folder PUT', function (done) {
     supertest(server)
       .put('/../test.file')
-      .send({container: {root: containerId}})
+      .query({container: containerId})
       .end(function(err, res){
         if (err) {
           return done(err);
@@ -167,11 +169,11 @@ Lab.experiment('escape test', function () {
         });
     });
   });
-  Lab.test('try to delete file out of container folder', function (done) {
+  lab.test('try to delete file out of container folder', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .del('/../file.txt')
-      .send({container: {root: containerId}})
+      .query({container: containerId})
       .end(function(err, res){
         if (err) {
           return done(err);
@@ -185,11 +187,11 @@ Lab.experiment('escape test', function () {
         });
     });
   });
-  Lab.test('try to read file out of container folder', function (done) {
+  lab.test('try to read file out of container folder', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .get('/../file.txt')
-      .send({container: {root: containerId}})
+      .query({container: containerId})
       .end(function(err, res){
         fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
@@ -201,15 +203,15 @@ Lab.experiment('escape test', function () {
     });
   });
 
-  Lab.test('try to move file out of container folder', function (done) {
+  lab.test('try to move file out of container folder', function (done) {
     fs.writeFileSync(containerFullPath + '/file.txt', 'testData');
     supertest(server)
       .post('/file.txt')
+      .query({container: containerId})
       .send({
         newPath: '/../file.txt',
         clobber: false,
         mkdirp: false,
-        container : {root: containerId}
       })
       .end(function(err, res){
         if (err) {
@@ -223,15 +225,15 @@ Lab.experiment('escape test', function () {
        return new Error('move excaped contaienr');
       });
   });
-  Lab.test('try to move external file inside contaienr', function (done) {
+  lab.test('try to move external file inside contaienr', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .post('/../file.txt')
+      .query({container: containerId})
       .send({
         newPath: '/file.txt',
         clobber: false,
         mkdirp: false,
-        container : {root: containerId}
       })
       .end(function(err, res){
         fs.unlinkSync(escapePath + '/file.txt', 'testData');
@@ -246,15 +248,15 @@ Lab.experiment('escape test', function () {
        return new Error('move excaped contaienr');
       });
   });
- Lab.test('try to move external file outside contaienr', function (done) {
+ lab.test('try to move external file outside contaienr', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .post('/../file.txt')
+      .query({container: containerId})
       .send({
         newPath: '/../file2.text',
         clobber: false,
         mkdirp: false,
-        container : {root: containerId}
       })
       .end(function(err, res){
         fs.unlinkSync(escapePath + '/file.txt', 'testData');
@@ -269,7 +271,7 @@ Lab.experiment('escape test', function () {
        return new Error('move excaped contaienr');
       });
   });
-  Lab.test('empty process.env.FS_POSTFIX test' , function (done) {
+  lab.test('empty process.env.FS_POSTFIX test' , function (done) {
     process.env.FS_POSTFIX = ' ';
     createFile('/".."/test.file', function(err) {
       if (err) {
