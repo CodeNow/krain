@@ -7,7 +7,7 @@ var supertest = require('supertest');
 var containerFullPath = __dirname+"/container1";
 var containerId = "container1";
 var request = require('request');
-
+var path = require('path');
 var async = require('async');
 var rimraf = require('rimraf');
 
@@ -315,14 +315,13 @@ lab.experiment('normal HTTP request', function () {
   var readFile= function (filepath, query, cb) {
     if(typeof query === 'function') {
       cb = query;
-      query = null;
+      query = {};
     }
-    var req = supertest(server).get(filepath);
-    if (query) {
-      req.query(query);
-    }
-    req
-      .query({container: containerId})
+    query.container = containerId;
+
+    supertest(server)
+      .get(filepath)
+      .query(query)
       .end(cb);
   };
 
@@ -505,65 +504,229 @@ lab.experiment('normal HTTP request', function () {
 });
 
 lab.experiment('stream tests', function () {
-  lab.before(function (done) {
-    cleanBase(done);
+  var app;
+  lab.beforeEach(cleanBase);
+  lab.beforeEach(function(done){
+    app = server.listen(testPort,done);
+  });
+  lab.afterEach(function(done){
+    app.close(done);
   });
   lab.after(function (done) {
     rimraf(containerFullPath, done);
   });
 
   var testPort = 52232;
-  lab.test('POST - stream file', function (done) {
-    var dataFile = containerFullPath+'/data.txt';
-    var testText = 'lots of text';
-    var testFile = '/stream_test.txt';
-    var testFilePath = containerFullPath+testFile;
+  var dataFile = containerFullPath+'/data.txt';
+  var testText = 'lots of text';
+  var testFile = '/stream_test.txt';
+  var testFilePath = containerFullPath+testFile;
 
+  lab.test('POST - stream file', function (done) {
     fs.writeFileSync(dataFile, testText);
-    var app = server.listen(testPort,
-      function() {
-        var r = request.post('http://localhost:'+testPort+testFile+'?container='+containerId);
-        fs.createReadStream(dataFile).pipe(r);
-        r.on('end', function(err) {
-          app.close(function() {
-            if (err) {
-              return done(err);
-            }
-            var data = '';
-            try{
-              data = fs.readFileSync(testFilePath);
-            } catch(err) {
-              return done(err);
-            }
-            Lab.expect(data.toString()).to.equal(testText);
-            done();
-          });
-        });
-      });
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      method: 'POST',
+      pool: false,
+      qs: {
+        container: containerId
+      }
+    }, function(err, res) {
+      if (err) { return done(err); }
+      var body = JSON.parse(res.body);
+
+      Lab.expect(res.statusCode).to.equal(201);
+      Lab.expect(body.name).to.equal(path.basename(testFile));
+      Lab.expect(body.path).to.equal(path.dirname(testFile));
+      Lab.expect(body.isDir).to.equal(false);
+
+      var data = fs.readFileSync(testFilePath);
+      Lab.expect(data.toString()).to.equal(testText);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
   });
 
-  lab.test('POST - stream existing file', function (done) {
-    var dataFile = containerFullPath+'/data.txt';
-    var testText = 'lots of text';
-    var testFile = '/stream_test.txt';
-    var testFilePath = containerFullPath+testFile;
-
+  lab.test('POST - stream existing file with clobber', function (done) {
     fs.writeFileSync(dataFile, testText);
     fs.writeFileSync(testFilePath, testText);
-    var app = server.listen(testPort,
-      function() {
-        fs.createReadStream(dataFile)
-        .pipe(request.post('http://localhost:'+testPort+testFile))
-        .on('end', function(err) {
-          app.close(function() {
-            if (err) {
-              return done(err);
-            }
-            var data = fs.readFileSync(testFilePath);
-            Lab.expect(data.toString()).to.equal(testText);
-            done();
-          });
-        });
-      });
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      qs: {
+        clobber: true,
+        container: containerId
+      },
+      method: 'POST',
+      pool: false
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      var body = JSON.parse(res.body);
+
+      Lab.expect(res.statusCode).to.equal(201);
+      Lab.expect(body.name).to.equal(path.basename(testFile));
+      Lab.expect(body.path).to.equal(path.dirname(testFile));
+      Lab.expect(body.isDir).to.equal(false);
+
+      var data = fs.readFileSync(testFilePath);
+      Lab.expect(data.toString()).to.equal(testText);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream file with clobber, mode, and encoding', function (done) {
+    fs.writeFileSync(dataFile, testText);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      qs: {
+        clobber: true,
+        mode: '0666',
+        encoding: 'utf8',
+        container: containerId
+      },
+      method: 'POST',
+      pool: false
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      var body = JSON.parse(res.body);
+
+      Lab.expect(res.statusCode).to.equal(201);
+      Lab.expect(body.name).to.equal(path.basename(testFile));
+      Lab.expect(body.path).to.equal(path.dirname(testFile));
+      Lab.expect(body.isDir).to.equal(false);
+
+      var data = fs.readFileSync(testFilePath);
+      Lab.expect(data.toString()).to.equal(testText);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream existing file with out clobber', function (done) {
+    fs.writeFileSync(dataFile, testText);
+    fs.writeFileSync(testFilePath, testText);
+    var data = fs.readFileSync(testFilePath);
+    Lab.expect(data.toString()).to.equal(testText);
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      method: 'POST',
+      pool: false,
+      qs: {
+        container: containerId
+      }
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      Lab.expect(res.statusCode).to.equal(409);
+      return done();
+    });
+
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream over folder', function (done) {
+    fs.writeFileSync(dataFile, testText);
+    fs.mkdirSync(testFilePath);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      method: 'POST',
+      pool: false,
+      qs: {
+        container: containerId
+      }
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      Lab.expect(res.statusCode).to.equal(409);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream over folder with clobber', function (done) {
+    fs.writeFileSync(dataFile, testText);
+    fs.mkdirSync(testFilePath);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      qs: {
+        clobber: true,
+        container: containerId
+      },
+      method: 'POST',
+      pool: false
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      Lab.expect(res.statusCode).to.equal(400);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream to path which does not exist', function (done) {
+    fs.writeFileSync(dataFile, testText);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+'/fake'+testFile,
+      method: 'POST',
+      pool: false,
+      qs: {
+        container: containerId
+      }
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      Lab.expect(res.statusCode).to.equal(404);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream to path which does not exist with clobber', function (done) {
+    fs.writeFileSync(dataFile, testText);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+'/fake'+testFile,
+      qs: {
+        clobber: true,
+        container: containerId
+      },
+      method: 'POST',
+      pool: false
+    }, function(err, res) {
+      if (err) { return done(err); }
+
+      Lab.expect(res.statusCode).to.equal(404);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
+  });
+
+  lab.test('POST - stream to path with different headers', function (done) {
+    fs.writeFileSync(dataFile, testText);
+
+    var r = request({
+      url: 'http://localhost:'+testPort+testFile,
+      method: 'POST',
+      pool: false,
+      qs: {
+        container: containerId
+      },
+      headers: {
+        'content-type': 'application/json'
+      }
+    }, function(err, res) {
+      if (err) { return done(err); }
+      Lab.expect(res.statusCode).to.equal(500);
+      done();
+    });
+    fs.createReadStream(dataFile).pipe(r);
   });
 });
