@@ -32,10 +32,10 @@
     "request": "^2.40.0"
   },
   "devDependencies": {
-    "lab": "*",
-    "supertest": "*",
-    "async": "*",
-    "walkdir": "*",
-    "rimraf": "*"
+    "lab": "4.1.0",
+    "supertest": "0.13.0",
+    "async": "0.9.0",
+    "walkdir": "0.0.7",
+    "rimraf": "2.2.8"
   }
 }
