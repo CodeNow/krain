@@ -25,17 +25,17 @@
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
     "express": "4.7.3",
-    "rest-fs": "0.1.9",
+    "rest-fs": "git://github.com/anandkumarpatel/rest-fs.git#bac086c290c353f580955eb8a4df5549674b8525",
     "body-parser": "1.5.2",
     "eson": "0.5.0",
     "dotenv": "0.4.0",
     "request": "^2.40.0"
   },
   "devDependencies": {
-    "lab": "*",
-    "supertest": "*",
-    "async": "*",
-    "walkdir": "*",
-    "rimraf": "*"
+    "lab": "4.1.0",
+    "supertest": "0.13.0",
+    "async": "0.9.0",
+    "walkdir": "0.0.7",
+    "rimraf": "2.2.8"
   }
 }
