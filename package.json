@@ -5,7 +5,7 @@
   "main": "./lib/app.js",
   "scripts": {
     "test": "NODE_ENV=test lab -v -c -t 100",
-    "start": "node index.js"
+    "start": "DEBUG=rest-fs* node index.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
     "express": "4.7.3",
-    "rest-fs": "git://github.com/anandkumarpatel/rest-fs.git#bac086c290c353f580955eb8a4df5549674b8525",
+    "rest-fs": "0.1.10",
     "body-parser": "1.5.2",
     "eson": "0.5.0",
     "dotenv": "0.4.0",
