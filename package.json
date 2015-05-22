@@ -30,7 +30,7 @@
     "eson": "0.5.0",
     "express": "4.7.3",
     "request": "^2.40.0",
-    "rest-fs": "0.1.10"
+    "rest-fs": "0.1.11"
   },
   "devDependencies": {
     "lab": "4.1.0",
