@@ -24,11 +24,15 @@
   },
   "homepage": "https://github.com/anandkumarpatel/krain",
   "dependencies": {
+    "101": "^1.2.0",
     "body-parser": "1.5.2",
+    "bunyan": "^1.5.1",
+    "bunyan-syslog": "^0.3.1",
     "debug": "^2.1.1",
     "dotenv": "0.4.0",
     "eson": "0.5.0",
     "express": "4.7.3",
+    "keypather": "^1.10.1",
     "request": "^2.40.0",
     "rest-fs": "0.1.11"
   },
