@@ -5,7 +5,7 @@
   "main": "./lib/app.js",
   "scripts": {
     "test": "NODE_ENV=test lab -v -c -t 100",
-    "start": "DEBUG=rest-fs* node index.js"
+    "start": "ulimit -c unlimited && DEBUG=rest-fs* node --abort-on-uncaught-exception index.js"
   },
   "repository": {
     "type": "git",
