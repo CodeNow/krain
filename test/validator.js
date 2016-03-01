@@ -2,6 +2,7 @@
 var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var server = require('../index.js');
+var app = require('../lib/app.js');
 var supertest = require('supertest');
 var containerFullPath = __dirname+"/container1";
 var escapePath = __dirname;
@@ -49,6 +50,48 @@ lab.experiment('forbidden test', function () {
       .get("/test")
       .expect(403)
       .end(done);
+  });
+});
+
+lab.experiment('Path Validator test', function () {
+  var failStrings = [
+     '/../asdasd/sadasd',
+     'asdasdasd/asdasd/../asdasdasd',
+     '../asdasdasd/asdasdas/..asdasdas/dasds.sdasd.sdads'
+  ];
+  var passStrings = [
+    'asdasd/sasdas.as/..asdasdasd/.a../.asdasdas.das.das.d.asd.as.d.asd.',
+    '/file.txt'
+  ];
+  lab.test('should fail all fail strings', function (done) {
+    var failedMessage = null;
+    var pass = failStrings.every(function (failPath) {
+      if (!app.isPathInvalid(failPath)) {
+        failedMessage = failPath + 'should have failed';
+        return false
+      }
+      return true
+    });
+    if (pass) {
+      done()
+    } else {
+      done(new Error(failedMessage))
+    }
+  });
+  lab.test('should pass all success strings', function (done) {
+    var failedMessage = null;
+    var pass = passStrings.every(function (passPath) {
+      if (app.isPathInvalid(passPath)) {
+        failedMessage = passPath + 'should have passed';
+        return false
+      }
+      return true
+    });
+    if (pass) {
+      done()
+    } else {
+      done(new Error(failedMessage))
+    }
   });
 });
 
@@ -216,17 +259,14 @@ lab.experiment('escape test', function () {
       .end(function(err, res){
         if (err) {
           return done(err);
-        } else if (200 !== res.statusCode) {
-          if(res.body && res.body.code === 'EEXIST') {
-            return done();
-          }
-          return done(res.statusCode);
+        } else if (403 === res.statusCode) {
+          return done();
         }
        return new Error('move escaped container');
       });
   });
   lab.test('try to move external file inside container', function (done) {
-    fs.writeFileSync(escapePath + '/file.txt', 'testData');
+    fs.writeFileSync(escapePath + '/../file.txt', 'testData');
     supertest(server)
       .post('/../file.txt')
       .query({container: containerId})
@@ -236,13 +276,13 @@ lab.experiment('escape test', function () {
         mkdirp: false,
       })
       .end(function(err, res){
-        fs.unlinkSync(escapePath + '/file.txt', 'testData');
+        fs.unlinkSync(escapePath + '/../file.txt', 'testData');
         if (err) {
           return done(err);
         } else if (403 === res.statusCode) {
           return done();
         }
-       return new Error('move escaped container');
+       return done(new Error('move escaped container'));
       });
   });
   lab.test('try to move external file outside container', function (done) {
@@ -262,16 +302,29 @@ lab.experiment('escape test', function () {
         } else if (403 === res.statusCode) {
           return done();
         }
-       return new Error('move escaped container');
+        return done(new Error('move escaped container'));
       });
   });
   lab.test('try to read external file outside container', function (done) {
-    fs.writeFileSync(escapePath + '/../file.txt', 'testData');
+    fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .get('/../file.txt')
       .query({container: containerId})
       .end(function(err, res){
-        fs.unlinkSync(escapePath + '/../file.txt', 'testData');
+        fs.unlinkSync(escapePath + '/file.txt', 'testData');
+        if (err) {
+          return done(err);
+        } else if (403 === res.statusCode) {
+          return done();
+        }
+        return done(new Error('fetched escaped container'));
+      });
+  });
+  lab.test('try to read external file outside container', function (done) {
+    supertest(server)
+      .get('../file.txt')
+      .query({container: containerId})
+      .end(function(err, res){
         if (err) {
           return done(err);
         } else if (403 === res.statusCode) {
