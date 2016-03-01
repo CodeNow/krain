@@ -103,7 +103,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
   lab.test('try to create file out of container folder', function (done) {
@@ -114,7 +114,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
   lab.test('try to create file out of container folder', function (done) {
@@ -125,7 +125,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
   lab.test('try to create file out of container folder', function (done) {
@@ -136,7 +136,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
   lab.test('try to create file out of container folder', function (done) {
@@ -147,7 +147,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
   lab.test('try to create file out of container folder PUT', function (done) {
@@ -165,7 +165,7 @@ lab.experiment('escape test', function () {
             }
             return done(err);
           }
-          return done(new Error('file excaped!!'));
+          return done(new Error('file escaped!!'));
         });
     });
   });
@@ -197,7 +197,7 @@ lab.experiment('escape test', function () {
         if (err) {
           return done(err);
         } else if (res.statusCode === 200) {
-          return done(new Error('read excaped'));
+          return done(new Error('read escaped'));
         }
         return done();
     });
@@ -222,10 +222,10 @@ lab.experiment('escape test', function () {
           }
           return done(res.statusCode);
         }
-       return new Error('move excaped contaienr');
+       return new Error('move escaped container');
       });
   });
-  lab.test('try to move external file inside contaienr', function (done) {
+  lab.test('try to move external file inside container', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .post('/../file.txt')
@@ -239,16 +239,13 @@ lab.experiment('escape test', function () {
         fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
           return done(err);
-        } else if (200 !== res.statusCode) {
-          if(res.body && res.body.code === 'ENOENT') {
-            return done();
-          }
-          return done(res.statusCode);
+        } else if (403 === res.statusCode) {
+          return done();
         }
-       return new Error('move excaped contaienr');
+       return new Error('move escaped container');
       });
   });
- lab.test('try to move external file outside contaienr', function (done) {
+  lab.test('try to move external file outside container', function (done) {
     fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .post('/../file.txt')
@@ -262,13 +259,41 @@ lab.experiment('escape test', function () {
         fs.unlinkSync(escapePath + '/file.txt', 'testData');
         if (err) {
           return done(err);
-        } else if (200 !== res.statusCode) {
-          if(res.body && res.body.code === 'ENOENT') {
-            return done();
-          }
-          return done(res.statusCode);
+        } else if (403 === res.statusCode) {
+          return done();
         }
-       return new Error('move excaped contaienr');
+       return new Error('move escaped container');
+      });
+  });
+  lab.test('try to read external file outside container', function (done) {
+    fs.writeFileSync(escapePath + '/../file.txt', 'testData');
+    fs.writeFileSync(escapePath + '/file.txt', 'testData');
+    supertest(server)
+      .get('/../file.txt')
+      .query({container: containerId})
+      .end(function(err, res){
+        fs.unlinkSync(escapePath + '/../file.txt', 'testData');
+        fs.unlinkSync(escapePath + '/file.txt', 'testData');
+        if (err) {
+          return done(err);
+        } else if (403 === res.statusCode) {
+          return done();
+        }
+        return done(new Error('fetched escaped container'));
+      });
+  });
+  lab.test('try to read external file outside container through container param', function (done) {
+    fs.writeFileSync(escapePath + '/../file.txt', 'testData');
+    supertest(server)
+      .get('/?container=/../file.txt')
+      .end(function(err, res){
+        fs.unlinkSync(escapePath + '/../file.txt', 'testData');
+        if (err) {
+          return done(err);
+        } else if (403 === res.statusCode) {
+          return done();
+        }
+        return done(new Error('fetched escaped container'));
       });
   });
   lab.test('empty process.env.FS_POSTFIX test' , function (done) {
@@ -280,7 +305,7 @@ lab.experiment('escape test', function () {
         }
         return done(err);
       }
-      return done(new Error('file excaped!!'));
+      return done(new Error('file escaped!!'));
     });
   });
 });
