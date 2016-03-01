@@ -267,13 +267,24 @@ lab.experiment('escape test', function () {
   });
   lab.test('try to read external file outside container', function (done) {
     fs.writeFileSync(escapePath + '/../file.txt', 'testData');
-    fs.writeFileSync(escapePath + '/file.txt', 'testData');
     supertest(server)
       .get('/../file.txt')
       .query({container: containerId})
       .end(function(err, res){
         fs.unlinkSync(escapePath + '/../file.txt', 'testData');
-        fs.unlinkSync(escapePath + '/file.txt', 'testData');
+        if (err) {
+          return done(err);
+        } else if (403 === res.statusCode) {
+          return done();
+        }
+        return done(new Error('fetched escaped container'));
+      });
+  });
+  lab.test('try to read external file outside container with .. in the middle', function (done) {
+    supertest(server)
+      .get('hello/../../../..file.txt')
+      .query({container: containerId})
+      .end(function(err, res){
         if (err) {
           return done(err);
         } else if (403 === res.statusCode) {
