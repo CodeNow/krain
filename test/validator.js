@@ -16,39 +16,39 @@ lab.experiment('forbidden test', function () {
   lab.test('DELETE', function (done) {
     supertest(server)
       .del("/test")
-      .expect(403)
+      .expect(400)
       .end(done);
   });
   lab.test('POST', function (done) {
     supertest(server)
       .post("/test")
-      .expect(403)
+      .expect(400)
       .end(done);
     });
   lab.test('PUT', function (done) {
     supertest(server)
       .put("/test")
-      .expect(403)
+      .expect(400)
       .end(done);
   });
   lab.test('PUT with incorrect format', function (done) {
     supertest(server)
       .put("/test")
       .send({container: "invalid"})
-      .expect(403)
+      .expect(400)
       .end(done);
   });
   lab.test('PUT with incorrect format', function (done) {
     supertest(server)
       .put("/test")
       .send({other: 'id'})
-      .expect(403)
+      .expect(400)
       .end(done);
   });
   lab.test('GET', function (done) {
     supertest(server)
       .get("/test")
-      .expect(403)
+      .expect(400)
       .end(done);
   });
 });
@@ -348,7 +348,7 @@ lab.experiment('escape test', function () {
       .end(function(err, res){
         if (err) {
           return done(err);
-        } else if (403 === res.statusCode) {
+        } else if (400 === res.statusCode) {
           return done();
         }
         return done(new Error('fetched escaped container'));
