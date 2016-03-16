@@ -4,9 +4,12 @@ var lab = exports.lab = Lab.script();
 var server = require('../index.js');
 var app = require('../lib/app.js');
 var supertest = require('supertest');
-var containerFullPath = __dirname+"/container1";
 var escapePath = __dirname;
 var containerId = "container1";
+var idFilePath = __dirname+"/" + containerId;
+var idFileFullPath = __dirname+"/" + containerId + '/mount-id';
+var fileId = "hljkh234lkj5h234lkj5hfvsdf";
+var containerFullPath = __dirname+"/" + fileId;
 var fs = require('fs');
 var async = require('async');
 var rimraf = require('rimraf');
@@ -97,17 +100,44 @@ lab.experiment('Path Validator test', function () {
 
 lab.experiment('escape test', function () {
   lab.beforeEach(function (done) {
+    rimraf.sync(containerFullPath);
+    rimraf.sync(idFilePath);
+    done();
+  });
+  lab.test('try to read from docker id file, but it fails', function (done) {
+    supertest(server)
+      .get('/file.txt')
+      .query({container: containerId})
+      .end(function (err, res) {
+        if (err) {
+          return done(err);
+        } else if (500 === res.statusCode) {
+          return done();
+        }
+        return done(new Error('should have fetched id file for folder location'));
+      });
+  });
+});
+
+lab.experiment('escape test', function () {
+  lab.beforeEach(function (done) {
     cleanBase(done);
   });
   lab.afterEach(function (done) {
     rimraf.sync(containerFullPath);
+    rimraf.sync(idFilePath);
     done();
   });
-
   function cleanBase(cb) {
-    rimraf.sync(containerFullPath);
-    fs.mkdirSync(containerFullPath);
-    cb();
+    rimraf(containerFullPath, function() {
+      fs.mkdir(containerFullPath, function () {
+        rimraf(idFilePath, function() {
+          fs.mkdir(idFilePath, function () {
+            fs.writeFile(idFileFullPath, fileId, cb)
+          });
+        });
+      });
+    });
   }
 
   function createFile(filepath, opts, cb) {
