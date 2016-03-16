@@ -9,8 +9,11 @@ var async = require('async');
 var rimraf = require('rimraf');
 var walk = require('walkdir');
 var path = require('path');
-var containerFullPath = __dirname+"/container1";
 var containerId = "container1";
+var idFilePath = __dirname+"/" + containerId;
+var idFileFullPath = __dirname+"/" + containerId + '/id-file';
+var fileId = "hljkh234lkj5h234lkj5hfvsdf";
+var containerFullPath = __dirname+"/" + fileId;
 
 // attach the .compare method to Array's prototype to call it on any array
 Array.prototype.compare = function (array) {
@@ -40,12 +43,20 @@ lab.before(function (done) {
   cleanBase(done);
 });
 lab.after(function (done) {
-  rimraf(containerFullPath, done);
+  rimraf(containerFullPath, function () {
+    rimraf(idFilePath, done);
+  });
 });
 
 function cleanBase(cb) {
   rimraf(containerFullPath, function() {
-    fs.mkdir(containerFullPath, cb);
+    fs.mkdir(containerFullPath, function () {
+      rimraf(idFilePath, function() {
+        fs.mkdir(idFilePath, function () {
+          fs.writeFile(idFileFullPath, fileId, cb)
+        });
+      });
+    });
   });
 }
 
