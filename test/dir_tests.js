@@ -11,7 +11,7 @@ var walk = require('walkdir');
 var path = require('path');
 var containerId = "container1";
 var idFilePath = __dirname+"/" + containerId;
-var idFileFullPath = __dirname+"/" + containerId + '/id-file';
+var idFileFullPath = __dirname+"/" + containerId + '/mount-id';
 var fileId = "hljkh234lkj5h234lkj5hfvsdf";
 var containerFullPath = __dirname+"/" + fileId;
 
