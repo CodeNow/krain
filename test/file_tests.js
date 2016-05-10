@@ -4,11 +4,8 @@ var lab = exports.lab = Lab.script();
 var fs = require('fs');
 var server = require('../index.js');
 var supertest = require('supertest');
+var containerFullPath = __dirname+"/container1";
 var containerId = "container1";
-var idFilePath = __dirname+"/" + containerId;
-var idFileFullPath = __dirname+"/" + containerId + '/mount-id';
-var fileId = "hljkh234lkj5h234lkj5hfvsdf";
-var containerFullPath = __dirname+"/" + fileId;
 var request = require('request');
 var path = require('path');
 var async = require('async');
@@ -16,15 +13,10 @@ var rimraf = require('rimraf');
 
 function cleanBase(cb) {
   rimraf(containerFullPath, function() {
-    fs.mkdir(containerFullPath, function () {
-      rimraf(idFilePath, function() {
-        fs.mkdir(idFilePath, function () {
-          fs.writeFile(idFileFullPath, fileId, cb)
-        });
-      });
-    });
+    fs.mkdir(containerFullPath, cb);
   });
 }
+
 function createFile(filepath, opts, cb) {
   if(typeof opts === 'function') {
     cb = opts;
@@ -139,10 +131,6 @@ lab.experiment('normal HTTP request', function () {
   });
   lab.after(function (done) {
     rimraf(containerFullPath, done);
-  });
-
-  lab.after(function (done) {
-    rimraf(idFilePath, done);
   });
 
   lab.experiment('basic create tests', function () {
@@ -526,10 +514,6 @@ lab.experiment('stream tests', function () {
   });
   lab.after(function (done) {
     rimraf(containerFullPath, done);
-  });
-
-  lab.after(function (done) {
-    rimraf(idFilePath, done);
   });
 
   var testPort = 52232;
