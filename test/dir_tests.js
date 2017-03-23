@@ -9,11 +9,14 @@ var async = require('async');
 var rimraf = require('rimraf');
 var walk = require('walkdir');
 var path = require('path');
+
+process.env.FS_ROOT = process.env.ROOT_DIR + "/test";
+process.env.FS_ID_FILE_ROOT = process.env.ROOT_DIR + "/test/%%CONTAINERID%%/mount-id";
+
 var containerId = "container1";
 var idFilePath = __dirname+"/" + containerId;
 var idFileFullPath = __dirname+"/" + containerId + '/mount-id';
 var fileId = "hljkh234lkj5h234lkj5hfvsdf";
-console.log('__diranem', __dirname);
 var containerFullPath = __dirname+"/" + fileId;
 
 // attach the .compare method to Array's prototype to call it on any array
@@ -93,7 +96,6 @@ function createDirPost(dirpath, opts, cb) {
     cb = opts;
     opts = {};
   }
-  console.log('createDirPost', dirpath, containerId, opts)
   var req = supertest(server)
     .post(dirpath)
     .query({container: containerId})
