@@ -33,6 +33,7 @@
     "eson": "0.5.0",
     "express": "4.7.3",
     "keypather": "^1.10.1",
+    "loadenv": "^2.2.0",
     "request": "^2.40.0",
     "rest-fs": "0.1.11"
   },
