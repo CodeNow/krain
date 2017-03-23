@@ -1,5 +1,5 @@
 'use strict';
-require('../lib/loadenv.js')();
+require('loadenv')();
 var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var fs = require('fs');
@@ -9,6 +9,10 @@ var async = require('async');
 var rimraf = require('rimraf');
 var walk = require('walkdir');
 var path = require('path');
+
+process.env.FS_ROOT = process.env.ROOT_DIR + "/test";
+process.env.FS_ID_FILE_ROOT = process.env.ROOT_DIR + "/test/%%CONTAINERID%%/mount-id";
+
 var containerId = "container1";
 var idFilePath = __dirname+"/" + containerId;
 var idFileFullPath = __dirname+"/" + containerId + '/mount-id';
